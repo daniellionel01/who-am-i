@@ -25,7 +25,7 @@ pub fn navbar() {
 pub fn root(elements: List(element.Element(a))) -> element.Element(a) {
   html.html([attribute.data("theme", "corporate")], [
     html.head([], [
-      html.title([], "Theater"),
+      html.title([], "🥸 Who am I?"),
       html.meta([
         attribute.name("viewport"),
         attribute.content("width=device-width, initial-scale=1"),
@@ -50,7 +50,6 @@ pub fn root(elements: List(element.Element(a))) -> element.Element(a) {
         ],
         "",
       ),
-      html.script([attribute.src("/static/vendor/htmx.js")], ""),
     ]),
     html.body([], elements),
   ])

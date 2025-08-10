@@ -1,11 +1,14 @@
 import lustre/element
+import who/layout
 import who/middleware
+import who/web/page
 import wisp
 
 pub fn handle_request(req: wisp.Request, ctx: middleware.Context) {
   use req <- middleware.middleware(req, ctx)
   case wisp.path_segments(req) {
-    [] -> serve_html(pages.home(), 200)
+    [] -> serve_html(page.home(), 200)
+    _ -> wisp.not_found()
   }
 }
 
