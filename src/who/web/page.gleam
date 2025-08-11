@@ -1,3 +1,10 @@
+import lustre/attribute
+import lustre/element/html
+
 pub fn home() {
-  todo
+  html.div([], [
+    html.div([attribute.class("m-10")], [
+      html.button([attribute.class("btn btn-primary")], [html.text("test")]),
+    ]),
+  ])
 }
