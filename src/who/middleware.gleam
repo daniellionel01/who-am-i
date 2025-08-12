@@ -1,7 +1,8 @@
+import sqlight
 import wisp
 
 pub type Context {
-  Context(static_directory: String)
+  Context(static_directory: String, db: sqlight.Connection)
 }
 
 pub fn middleware(

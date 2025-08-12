@@ -5,7 +5,7 @@ pub type Environment {
 }
 
 pub fn get_env() -> Environment {
-  let assert Ok(db_path) = envoy.get("DB_PATH")
+  let assert Ok(db_path) = envoy.get("DATABASE_URL")
 
   Environment(db_path:)
 }

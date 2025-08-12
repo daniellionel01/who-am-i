@@ -1,5 +1,20 @@
 set dotenv-load
 
+export DBMATE_MIGRATIONS_DIR := "./priv/migrations"
+export DBMATE_SCHEMA_FILE  := "./priv/schema.sql"
+
+db-new name:
+  dbmate new "{{name}}"
+
+db-status:
+  dbmate status
+
+db-migrate:
+  dbmate migrate
+
+db-up:
+  dbmate up
+
 default:
   @just --choose
 
