@@ -139,6 +139,15 @@
       .btn:hover {
         border-color: #3b4450;
       }
+      .btn:disabled,
+      .btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn:disabled:hover,
+      .btn.disabled:hover {
+        border-color: var(--border);
+      }
       .btn.small {
         padding: 8px 10px;
         font-size: 13px;
@@ -653,6 +662,12 @@
 
         // header game id
         el.gameIdBadge.textContent = iHaveState ? `Game ${state.gameId}` : "No game";
+        
+        // Enable/disable share buttons based on game state
+        el.shareBtn.disabled = !iHaveState;
+        el.shareBtn2.disabled = !iHaveState;
+        el.shareBtn.classList.toggle("disabled", !iHaveState);
+        el.shareBtn2.classList.toggle("disabled", !iHaveState);
 
         // Reveal mode flag from URL
         const params = new URLSearchParams(location.hash.slice(1));
@@ -843,6 +858,13 @@
       el.pickSelfBtn2.addEventListener("click", openPickSelfDialog);
 
       function openShare() {
+        // Check if there's an active game
+        const { state } = current;
+        if (!state) {
+          alert("No active game to share.");
+          return;
+        }
+        
         // Build a link that opens directly on Reveal and doesn't bind "me"
         const params = new URLSearchParams(location.hash.slice(1));
         params.delete("me"); // don't bind identity
