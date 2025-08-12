@@ -7,6 +7,7 @@ CREATE TABLE game (
   current_round_id text,
   foreign key (current_round_id) references round(id)
 );
+CREATE INDEX idx_game_code on game(code);
 CREATE TABLE player (
   id text primary key,
   game_id text not null,
@@ -14,12 +15,14 @@ CREATE TABLE player (
   is_host integer not null default 0,
   foreign key (game_id) references game(id)
 );
+CREATE INDEX idx_player_game_id on player(game_id);
 CREATE TABLE round (
   id text primary key,
   game_id text not null,
   created_at text not null default (datetime('now')),
   foreign key (game_id) references game(id)
 );
+CREATE INDEX idx_round_game_id on round(game_id);
 CREATE TABLE player_assignment (
   id text primary key,
   round_id text not null,
@@ -31,6 +34,9 @@ CREATE TABLE player_assignment (
   foreign key (assigning_id) references player(id),
   unique (round_id, assigned_id)
 );
+CREATE INDEX idx_assignment_round_id on player_assignment(round_id);
+CREATE INDEX idx_assignment_assigned_id on player_assignment(assigned_id);
+CREATE INDEX idx_assignment_assigning_id on player_assignment(assigning_id);
 -- Dbmate schema migrations
 INSERT INTO "schema_migrations" (version) VALUES
   ('20250812095525');

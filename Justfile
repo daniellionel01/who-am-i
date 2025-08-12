@@ -15,6 +15,11 @@ db-migrate:
 db-up:
   dbmate up
 
+db-ide:
+  #!/bin/bash
+  db_path=$(echo "$DATABASE_URL" | sed -E 's|^sqlite:(//)?||')
+  harlequin -a sqlite "$db_path"
+
 default:
   @just --choose
 
@@ -35,7 +40,7 @@ build:
   gleam build
 
 codegen:
-  gleam run -m parrot -- --sqlite theater_dev.db
+  gleam run -m parrot -- --sqlite who_dev.db
 
 audit:
   gleam run -m choire
