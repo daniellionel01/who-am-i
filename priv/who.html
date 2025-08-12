@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Who am I? — group game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0e1116;
+        --card: #161b22;
+        --muted: #8b949e;
+        --text: #e6edf3;
+        --accent: #58a6ff;
+        --ok: #2ea043;
+        --warn: #d29922;
+        --danger: #f85149;
+        --border: #30363d;
+        --input: #0b0f14;
+        --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        --radius: 14px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Arial,
+          sans-serif;
+        background: radial-gradient(1200px 800px at 10% 0%, #0c121a 0%, #0e1116 40%, #0e1116 100%);
+        color: var(--text);
+        line-height: 1.35;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        backdrop-filter: blur(10px);
+        background: rgba(14, 17, 22, 0.6);
+        border-bottom: 1px solid var(--border);
+      }
+      .bar {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 10px 16px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .pill {
+        font-size: 12px;
+        color: var(--muted);
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 18px auto 80px;
+        padding: 0 16px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 10px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      h2 {
+        font-size: 18px;
+      }
+      p {
+        color: var(--muted);
+        margin: 8px 0 14px;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .grow {
+        flex: 1 1 auto;
+      }
+      .btn {
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: linear-gradient(#1b222c, #161b22);
+        color: var(--text);
+        padding: 9px 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+      .btn:hover {
+        border-color: #3b4450;
+      }
+      .btn.small {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+      .btn.ghost {
+        background: transparent;
+      }
+      .btn.accent {
+        background: linear-gradient(#1580ff, #0e6ae6);
+        border-color: #2b78ff;
+      }
+      .btn.ok {
+        background: linear-gradient(#2ea043, #238636);
+        border-color: #2ea043;
+      }
+      .btn.warn {
+        background: linear-gradient(#d29922, #b8841c);
+        border-color: #d29922;
+      }
+      .btn.danger {
+        background: linear-gradient(#f85149, #da3b32);
+        border-color: #f85149;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--input);
+        color: var(--text);
+        outline: none;
+      }
+      input[type="text"]::placeholder {
+        color: #7b8591;
+      }
+
+      .list {
+        margin: 8px 0 0;
+        display: grid;
+        gap: 8px;
+      }
+      .person {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 8px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #11161d;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .badge.ok {
+        color: #9fe3af;
+        border-color: rgba(46, 160, 67, 0.4);
+        background: rgba(46, 160, 67, 0.08);
+      }
+      .badge.na {
+        color: #ffcab2;
+        border-color: rgba(210, 153, 34, 0.4);
+        background: rgba(210, 153, 34, 0.08);
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .grid {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+      }
+      .tile {
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #0f141b;
+        min-height: 84px;
+        display: grid;
+        align-content: start;
+        gap: 8px;
+      }
+      .name {
+        font-weight: 700;
+      }
+      .identity {
+        color: #cfd7e3;
+      }
+      .blurred {
+        filter: blur(7px);
+        user-select: none;
+      }
+      .muted {
+        color: var(--muted);
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 14px 0;
+      }
+
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+      }
+      dialog {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--card);
+        color: var(--text);
+        width: min(560px, calc(100vw - 32px));
+        box-shadow: var(--shadow);
+        padding: 0;
+      }
+      .dlg-head {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dlg-body {
+        padding: 14px 16px;
+      }
+      .dlg-foot {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .qr {
+        display: grid;
+        place-items: center;
+        padding: 12px;
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        background: #0f141b;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .footer {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        display: grid;
+        place-items: center;
+        padding: 12px;
+      }
+      .footer .inner {
+        font-size: 12px;
+        color: var(--muted);
+        background: rgba(22, 27, 34, 0.75);
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        border-radius: 999px;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <div class="row">
+          <div class="title">Who am I?</div>
+          <div id="gameIdBadge" class="pill" title="Game ID"></div>
+        </div>
+        <div class="row">
+          <button id="shareBtn" class="btn small">Share / QR</button>
+          <button id="newGameBtn" class="btn small danger">New game</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <!-- Initial create game -->
+      <section id="viewCreate" class="card" style="display: none">
+        <h1>Start a new game</h1>
+        <p>Enter your name. You’ll be the first participant. Then add others and assign identities.</p>
+        <div class="row">
+          <input id="creatorName" type="text" placeholder="Your name…" />
+          <button id="createGameBtn" class="btn accent">Create game</button>
+        </div>
+      </section>
+
+      <!-- Add participants / assign identities -->
+      <section id="viewLobby" class="card" style="display: none">
+        <h1>Participants & identities</h1>
+        <p class="mono" id="meInfo"></p>
+
+        <div class="row">
+          <input id="addName" type="text" placeholder="Add participant name…" />
+          <button id="addBtn" class="btn">Add</button>
+        </div>
+
+        <div id="peopleList" class="list"></div>
+
+        <div class="divider"></div>
+        <div class="row">
+          <button id="viewIdentitiesBtn" class="btn ok">View identities</button>
+          <button id="pickSelfBtn" class="btn ghost">I’m not the right person</button>
+        </div>
+        <p class="hint">
+          Tip: Hand the device to the person assigning an identity and use “Set identity”. Identities don’t show here.
+        </p>
+      </section>
+
+      <!-- Viewer: identities list with my own hidden -->
+      <section id="viewReveal" class="card" style="display: none">
+        <div class="row" style="justify-content: space-between; align-items: baseline">
+          <h1>Everyone’s identity (except yours)</h1>
+          <button id="backToLobbyBtn" class="btn ghost small">Back to edit</button>
+        </div>
+        <p class="mono" id="revealMeInfo"></p>
+        <div id="revealGrid" class="grid"></div>
+        <div class="divider"></div>
+        <div class="row">
+          <button id="shareBtn2" class="btn small">Share / QR</button>
+          <button id="pickSelfBtn2" class="btn ghost small">I’m not the right person</button>
+        </div>
+        <p class="hint">
+          Share this page so others can pick who they are. Their own identity will stay hidden to them.
+        </p>
+      </section>
+    </div>
+
+    <div class="footer">
+      <div class="inner">No server. State lives in the URL. You can refresh safely.</div>
+    </div>
+
+    <!-- Dialogs -->
+    <dialog id="dlgIdentity">
+      <div class="dlg-head">
+        <strong>Set identity</strong>
+        <button class="btn small ghost" onclick="document.getElementById('dlgIdentity').close()">Close</button>
+      </div>
+      <div class="dlg-body">
+        <div id="whoFor" class="mono" style="margin-bottom: 8px"></div>
+        <input id="identityInput" type="text" placeholder="Type the secret identity…" />
+      </div>
+      <div class="dlg-foot">
+        <button class="btn ghost" onclick="document.getElementById('dlgIdentity').close()">Cancel</button>
+        <button id="saveIdentityBtn" class="btn ok">Save identity</button>
+      </div>
+    </dialog>
+
+    <dialog id="dlgPickSelf">
+      <div class="dlg-head">
+        <strong>Who are you?</strong>
+        <button class="btn small ghost" onclick="document.getElementById('dlgPickSelf').close()">Close</button>
+      </div>
+      <div class="dlg-body">
+        <p class="hint">Pick yourself so your identity stays hidden for you.</p>
+        <div id="pickSelfList" class="list"></div>
+      </div>
+    </dialog>
+
+    <dialog id="dlgShare">
+      <div class="dlg-head">
+        <strong>Share this game</strong>
+        <button class="btn small ghost" onclick="document.getElementById('dlgShare').close()">Close</button>
+      </div>
+      <div class="dlg-body">
+        <div class="row">
+          <input id="shareLink" type="text" readonly />
+          <button id="copyLinkBtn" class="btn">Copy link</button>
+        </div>
+        <div class="divider"></div>
+        <div class="qr">
+          <canvas id="qrCanvas" width="240" height="240" aria-label="QR Code"></canvas>
+        </div>
+        <p class="hint">Scan to join this exact game state.</p>
+      </div>
+    </dialog>
+
+    <script>
+      // ---------- utilities: base64url encode/decode JSON safely ----------
+      const b64u = {
+        encode: (strBytes) => {
+          return btoa(strBytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        },
+        decode: (b64) => {
+          b64 = b64.replace(/-/g, "+").replace(/_/g, "/");
+          while (b64.length % 4) b64 += "=";
+          return atob(b64);
+        },
+      };
+      function encodeJSON(obj) {
+        const bytes = new TextEncoder().encode(JSON.stringify(obj));
+        let bin = "";
+        for (const b of bytes) bin += String.fromCharCode(b);
+        return b64u.encode(bin);
+      }
+      function decodeJSON(b64) {
+        const bin = b64u.decode(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return JSON.parse(new TextDecoder().decode(bytes));
+      }
+      function uid(len = 8) {
+        const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+        let s = "";
+        crypto.getRandomValues(new Uint8Array(len)).forEach((n) => (s += chars[n % chars.length]));
+        return s;
+      }
+
+      // ---------- URL state handling ----------
+      // Hash schema: #s=<b64url-json>&me=<participantId>
+      const SCHEMA_VERSION = 1;
+      function readHash() {
+        const raw = location.hash.replace(/^#/, "");
+        const params = new URLSearchParams(raw);
+        const s = params.get("s");
+        const me = params.get("me");
+        let state = null;
+        try {
+          state = s ? decodeJSON(s) : null;
+        } catch {
+          state = null;
+        }
+        return { state, me };
+      }
+      function writeHash(state, me, replace = true) {
+        const params = new URLSearchParams();
+        if (state) params.set("s", encodeJSON(state));
+        if (me) params.set("me", me);
+        const newHash = "#" + params.toString();
+        if (replace) history.replaceState(null, "", newHash);
+        else location.hash = newHash;
+        render();
+      }
+      function newEmptyState(creatorName) {
+        const id = uid();
+        return {
+          version: SCHEMA_VERSION,
+          gameId: uid(6),
+          createdAt: Date.now(),
+          participants: [{ id, name: creatorName.trim(), identity: null }],
+        };
+      }
+      function getMe(state, meId) {
+        return state?.participants?.find((p) => p.id === meId) || null;
+      }
+
+      // ---------- app state (derived from URL only) ----------
+      let current = readHash(); // {state, me}
+
+      // ---------- DOM refs ----------
+      const el = {
+        viewCreate: document.getElementById("viewCreate"),
+        viewLobby: document.getElementById("viewLobby"),
+        viewReveal: document.getElementById("viewReveal"),
+        creatorName: document.getElementById("creatorName"),
+        createGameBtn: document.getElementById("createGameBtn"),
+        addName: document.getElementById("addName"),
+        addBtn: document.getElementById("addBtn"),
+        peopleList: document.getElementById("peopleList"),
+        viewIdentitiesBtn: document.getElementById("viewIdentitiesBtn"),
+        backToLobbyBtn: document.getElementById("backToLobbyBtn"),
+        meInfo: document.getElementById("meInfo"),
+        revealMeInfo: document.getElementById("revealMeInfo"),
+        revealGrid: document.getElementById("revealGrid"),
+        pickSelfBtn: document.getElementById("pickSelfBtn"),
+        pickSelfBtn2: document.getElementById("pickSelfBtn2"),
+        dlgIdentity: document.getElementById("dlgIdentity"),
+        whoFor: document.getElementById("whoFor"),
+        identityInput: document.getElementById("identityInput"),
+        saveIdentityBtn: document.getElementById("saveIdentityBtn"),
+        dlgPickSelf: document.getElementById("dlgPickSelf"),
+        pickSelfList: document.getElementById("pickSelfList"),
+        shareBtn: document.getElementById("shareBtn"),
+        shareBtn2: document.getElementById("shareBtn2"),
+        dlgShare: document.getElementById("dlgShare"),
+        shareLink: document.getElementById("shareLink"),
+        copyLinkBtn: document.getElementById("copyLinkBtn"),
+        qrCanvas: document.getElementById("qrCanvas"),
+        newGameBtn: document.getElementById("newGameBtn"),
+        gameIdBadge: document.getElementById("gameIdBadge"),
+      };
+
+      // ---------- rendering ----------
+      function render() {
+        current = readHash();
+        const { state, me } = current;
+        const iHaveState = !!state && Array.isArray(state.participants);
+        const iAmKnown = iHaveState && !!getMe(state, me);
+
+        // header game id
+        el.gameIdBadge.textContent = iHaveState ? `Game ${state.gameId}` : "No game";
+
+        // Views visibility
+        el.viewCreate.style.display = iHaveState ? "none" : "block";
+        el.viewLobby.style.display = iHaveState ? "block" : "none";
+        // Reveal view shows when we have state; toggled by a flag in memory? Keep simple: stay available after button
+        // We'll auto-hide reveal unless hash has &view=reveal
+        const params = new URLSearchParams(location.hash.slice(1));
+        const showReveal = params.get("view") === "reveal";
+        el.viewReveal.style.display = iHaveState && showReveal ? "block" : "none";
+        el.viewLobby.style.display = iHaveState && !showReveal ? "block" : el.viewLobby.style.display;
+
+        if (showReveal && !iAmKnown) openPickSelfDialog();
+
+        // If state missing, done.
+        if (!iHaveState) return;
+
+        // If user is not assigned "me", prompt to pick (non-blocking dialog)
+        if (!iAmKnown) {
+          openPickSelfDialog();
+        }
+
+        // Lobby content
+        const meObj = getMe(state, me);
+        el.meInfo.textContent = meObj ? `You are: ${meObj.name}` : "You are: (choose yourself)";
+        renderPeopleList();
+
+        // Reveal content
+        el.revealMeInfo.textContent = meObj
+          ? `Your identity stays hidden for: ${meObj.name}`
+          : "Pick who you are to hide your own identity.";
+        renderRevealGrid();
+      }
+
+      function renderPeopleList() {
+        const { state } = current;
+        el.peopleList.innerHTML = "";
+        state.participants.forEach((p) => {
+          const row = document.createElement("div");
+          row.className = "person";
+
+          const left = document.createElement("div");
+          left.innerHTML = `<div class="name">${escapeHtml(p.name)}</div>
+                          <div class="mono">ID: ${p.id}</div>`;
+          const status = document.createElement("div");
+          status.innerHTML = p.identity
+            ? `<span class="badge ok">assigned</span>`
+            : `<span class="badge na">not set</span>`;
+
+          const actions = document.createElement("div");
+          actions.className = "row";
+          const btnId = document.createElement("button");
+          btnId.className = "btn small";
+          btnId.textContent = p.identity ? "Edit identity" : "Set identity";
+          btnId.addEventListener("click", () => openIdentityDialog(p.id));
+          const btnDel = document.createElement("button");
+          btnDel.className = "btn small ghost";
+          btnDel.textContent = "Remove";
+          btnDel.addEventListener("click", () => {
+            if (!confirm(`Remove ${p.name}?`)) return;
+            state.participants = state.participants.filter((x) => x.id !== p.id);
+            // If we removed the viewer, clear me
+            let me = current.me;
+            if (p.id === me) me = "";
+            writeHash(state, me, true);
+          });
+          actions.append(btnId, btnDel);
+
+          row.append(left, status, actions);
+          el.peopleList.appendChild(row);
+        });
+      }
+
+      function renderRevealGrid() {
+        const { state, me } = current;
+        el.revealGrid.innerHTML = "";
+        const meObj = getMe(state, me);
+        const hideAll = !meObj;
+
+        state.participants.forEach((p) => {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = p.name;
+
+          const idy = document.createElement("div");
+          idy.className = "identity";
+
+          if (hideAll) {
+            idy.textContent = "(pick yourself to reveal others)";
+            idy.classList.add("muted", "blurred");
+          } else if (p.id === meObj.id) {
+            idy.innerHTML = `<span class="muted">(your identity is hidden)</span>`;
+            idy.classList.add("blurred");
+            const sr = document.createElement("span");
+            sr.className = "sr";
+            sr.textContent = "(hidden)";
+            idy.appendChild(sr);
+          } else {
+            idy.textContent = p.identity ?? "—";
+            if (!p.identity) idy.classList.add("muted");
+          }
+
+          tile.append(name, idy);
+          el.revealGrid.appendChild(tile);
+        });
+      }
+
+      // ---------- dialogs & actions ----------
+      function openIdentityDialog(pid) {
+        const { state } = current;
+        const p = state.participants.find((x) => x.id === pid);
+        if (!p) return;
+        el.whoFor.textContent = `For: ${p.name}`;
+        el.identityInput.value = p.identity ?? "";
+        el.saveIdentityBtn.onclick = () => {
+          const val = el.identityInput.value.trim();
+          if (!val) {
+            alert("Please enter an identity.");
+            return;
+          }
+          p.identity = val;
+          writeHash(state, current.me, true);
+          el.dlgIdentity.close();
+        };
+        el.dlgIdentity.showModal();
+        setTimeout(() => el.identityInput.focus(), 10);
+      }
+
+      function openPickSelfDialog() {
+        const { state } = current;
+        el.pickSelfList.innerHTML = "";
+        state.participants.forEach((p) => {
+          const row = document.createElement("div");
+          row.className = "person";
+          const label = document.createElement("div");
+          label.innerHTML = `<div class="name">${escapeHtml(p.name)}</div><div class="mono">${p.id}</div>`;
+          const btn = document.createElement("button");
+          btn.className = "btn small ok";
+          btn.textContent = "This is me";
+          btn.addEventListener("click", () => {
+            writeHash(state, p.id, true);
+            el.dlgPickSelf.close();
+          });
+          row.append(label, document.createElement("div"), btn);
+          el.pickSelfList.appendChild(row);
+        });
+        if (!el.dlgPickSelf.open) el.dlgPickSelf.showModal();
+      }
+
+      // ---------- event wiring ----------
+      el.createGameBtn.addEventListener("click", () => {
+        const name = (el.creatorName.value || "").trim();
+        if (!name) {
+          el.creatorName.focus();
+          return;
+        }
+        const state = newEmptyState(name);
+        const me = state.participants[0].id;
+        writeHash(state, me, false);
+      });
+
+      el.addBtn.addEventListener("click", () => {
+        const name = (el.addName.value || "").trim();
+        if (!name) {
+          el.addName.focus();
+          return;
+        }
+        const { state } = current;
+        state.participants.push({ id: uid(), name, identity: null });
+        el.addName.value = "";
+        writeHash(state, current.me, true);
+      });
+
+      el.viewIdentitiesBtn.addEventListener("click", () => {
+        const params = new URLSearchParams(location.hash.slice(1));
+        params.set("view", "reveal");
+        location.hash = "#" + params.toString();
+      });
+      el.backToLobbyBtn.addEventListener("click", () => {
+        const params = new URLSearchParams(location.hash.slice(1));
+        params.delete("view");
+        location.hash = "#" + params.toString();
+      });
+
+      el.pickSelfBtn.addEventListener("click", openPickSelfDialog);
+      el.pickSelfBtn2.addEventListener("click", openPickSelfDialog);
+
+      function openShare() {
+        const params = new URLSearchParams(location.hash.slice(1));
+        params.delete("me");
+        params.delete("view");
+        const url = location.origin + location.pathname + location.search + "#" + params.toString();
+
+        el.shareLink.value = url;
+        drawQR(url);
+        el.dlgShare.showModal();
+      }
+
+      el.shareBtn.addEventListener("click", openShare);
+      el.shareBtn2.addEventListener("click", openShare);
+
+      el.copyLinkBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(el.shareLink.value);
+          el.copyLinkBtn.textContent = "Copied!";
+          setTimeout(() => (el.copyLinkBtn.textContent = "Copy link"), 1200);
+        } catch {
+          prompt("Copy this link:", el.shareLink.value);
+        }
+      });
+
+      el.newGameBtn.addEventListener("click", () => {
+        if (!confirm("Start a new game? This clears the current state.")) return;
+        history.replaceState(null, "", location.pathname + location.search);
+        render();
+      });
+
+      window.addEventListener("hashchange", render);
+
+      // ---------- QR Code (minimal generator): based on Kazuhiko Arase’s qrcode.js (MIT, trimmed) ----------
+      // License: MIT (https://github.com/kazuhikoarase/qrcode-generator)
+      // Tiny embed sufficient for alphanumeric/byte URL content @ low error correction.
+      (function () {
+        function QR8bitByte(data) {
+          this.mode = 4;
+          this.data = data;
+          this.parsed = [];
+          for (let i = 0; i < data.length; i++) this.parsed.push(data.charCodeAt(i));
+          this.getLength = function () {
+            return this.parsed.length;
+          };
+          this.write = function (buf) {
+            for (let i = 0; i < this.parsed.length; i++) buf.put(this.parsed[i], 8);
+          };
+        }
+        const QRUtil = (function () {
+          const PAT = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+          ];
+          return {
+            getPattern: function () {
+              return PAT;
+            },
+          };
+        })();
+        function QRBitBuffer() {
+          this.buffer = [];
+          this.length = 0;
+        }
+        QRBitBuffer.prototype = {
+          get: function (i) {
+            return ((this.buffer[Math.floor(i / 8)] >>> (7 - (i % 8))) & 1) == 1;
+          },
+          put: function (num, length) {
+            for (let i = 0; i < length; i++) this.putBit(((num >>> (length - i - 1)) & 1) == 1);
+          },
+          putBit: function (bit) {
+            const bufIndex = Math.floor(this.length / 8);
+            if (this.buffer.length <= bufIndex) this.buffer.push(0);
+            if (bit) this.buffer[bufIndex] |= 0x80 >>> this.length % 8;
+            this.length++;
+          },
+        };
+        // Extremely small, fixed version (v=3, 29x29) with ECC level L for typical URLs.
+        function QRCodeV3() {
+          this.typeNumber = 3;
+          this.moduleCount = 29;
+          this.modules = new Array(this.moduleCount);
+          for (let row = 0; row < this.moduleCount; row++) {
+            this.modules[row] = new Array(this.moduleCount);
+            for (let col = 0; col < this.moduleCount; col++) this.modules[row][col] = null;
+          }
+        }
+        QRCodeV3.prototype = {
+          addData: function (data) {
+            this.data = new QR8bitByte(data);
+          },
+          make: function () {
+            // place finder patterns
+            const size = this.moduleCount,
+              pat = QRUtil.getPattern();
+            const placeFinder = (r, c) => {
+              for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) this.modules[r + y][c + x] = pat[y][x] == 1;
+            };
+            placeFinder(0, 0);
+            placeFinder(0, size - 7);
+            placeFinder(size - 7, 0);
+            // timing
+            for (let i = 8; i < size - 8; i++) {
+              this.modules[6][i] = i % 2 == 0;
+              this.modules[i][6] = i % 2 == 0;
+            }
+            // reserve format bits (skip actual EC mask for tiny impl)
+            // data placement (naive, no mask), write bytes in zig-zag
+            const buf = new QRBitBuffer(); // mode
+            buf.put(4, 4); // 8-bit byte
+            buf.put(this.data.getLength(), 8);
+            this.data.write(buf);
+            // terminator (pad to capacity ~50 bytes for v3-L; plenty for URLs < 90 chars if they fit then good; else truncate)
+            const CAP = 50 * 8;
+            for (let i = 0; i < 4 && buf.length < CAP; i++) buf.putBit(0);
+            while (buf.length % 8 != 0 && buf.length < CAP) buf.putBit(0);
+            while (buf.length < CAP) {
+              buf.put(0xec, 8);
+              if (buf.length < CAP) buf.put(0x11, 8);
+            }
+            // zig-zag placement
+            let row = size - 1,
+              col = size - 1,
+              dir = -1,
+              bitIndex = 0;
+            const isReserved = (r, c) => {
+              // finder areas + timing + format rows/cols rough reservation
+              const inFinder = (rr, cc) =>
+                (rr < 7 && cc < 7) || (rr < 7 && cc >= size - 7) || (rr >= size - 7 && cc < 7);
+              if (inFinder(r, c)) return true;
+              if (r == 6 || c == 6) return true;
+              return false;
+            };
+            while (col > 0) {
+              if (col == 6) col--; // skip timing col
+              for (let i = 0; i < size; i++) {
+                const r = row + dir * i;
+                if (r < 0 || r >= size) continue;
+                for (let j = 0; j < 2; j++) {
+                  const cc = col - j;
+                  if (this.modules[r][cc] !== null) continue;
+                  const bit = bitIndex < buf.length ? buf.get(bitIndex) : false;
+                  this.modules[r][cc] = bit;
+                  bitIndex++;
+                }
+              }
+              col -= 2;
+              dir = -dir;
+              row += dir > 0 ? 0 : 0; // keep row at last pos
+            }
+            // simple mask: invert where (r+c)%2==0 to improve contrast
+            for (let r = 0; r < size; r++)
+              for (let c = 0; c < size; c++) {
+                if (isReserved(r, c)) continue;
+                if ((r + c) % 2 == 0) this.modules[r][c] = !this.modules[r][c];
+              }
+          },
+          isDark: function (r, c) {
+            return !!this.modules[r][c];
+          },
+        };
+        window.__MiniQRCode = function (canvas, text) {
+          const qr = new QRCodeV3();
+          qr.addData(text);
+          qr.make();
+          const N = qr.moduleCount,
+            scale = Math.floor(canvas.width / (N + 8)); // quiet zone
+          const qz = 4 * scale;
+          const size = N * scale + 2 * qz;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, size, size);
+          ctx.fillStyle = "#000";
+          for (let r = 0; r < N; r++) {
+            for (let c = 0; c < N; c++) {
+              if (qr.isDark(r, c)) ctx.fillRect(qz + c * scale, qz + r * scale, scale, scale);
+            }
+          }
+        };
+      })();
+
+      function drawQR(text) {
+        try {
+          __MiniQRCode(el.qrCanvas, text);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // ---------- helpers ----------
+      function escapeHtml(s) {
+        return s.replace(
+          /[&<>"']/g,
+          (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m],
+        );
+      }
+
+      // ---------- boot ----------
+      render();
+    </script>
+  </body>
+</html>
