@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>Who am I? — group game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="https://fav.farm/%F0%9F%A5%B8" />
     <style>
       :root {
         --bg: #0e1116;
@@ -303,6 +304,34 @@
         clip: rect(0 0 0 0);
         white-space: nowrap;
       }
+
+      /* Spacious, clean reveal mode */
+      .reveal-mode .wrap {
+        max-width: 1200px;
+      }
+      .reveal-mode #viewReveal .grid {
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      @media (min-width: 1100px) {
+        .reveal-mode #viewReveal .grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .reveal-mode #viewReveal .tile {
+        padding: 20px;
+        min-height: 120px;
+        align-content: center;
+      }
+      .reveal-mode #viewReveal .name {
+        font-size: 18px;
+      }
+      .reveal-mode #viewReveal .identity {
+        font-size: 16px;
+      }
+      .reveal-mode header .bar {
+        padding-block: 8px;
+      } /* a bit slimmer header in reveal */
     </style>
   </head>
   <body>
@@ -423,9 +452,7 @@
     <script>
       // ---------- utilities: base64url encode/decode JSON safely ----------
       const b64u = {
-        encode: (strBytes) => {
-          return btoa(strBytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-        },
+        encode: (strBytes) => btoa(strBytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
         decode: (b64) => {
           b64 = b64.replace(/-/g, "+").replace(/_/g, "/");
           while (b64.length % 4) b64 += "=";
@@ -452,7 +479,7 @@
       }
 
       // ---------- URL state handling ----------
-      // Hash schema: #s=<b64url-json>&me=<participantId>
+      // Hash schema: #s=<b64url-json>&me=<participantId>&view=<reveal|...>
       const SCHEMA_VERSION = 1;
       function readHash() {
         const raw = location.hash.replace(/^#/, "");
@@ -468,9 +495,12 @@
         return { state, me };
       }
       function writeHash(state, me, replace = true) {
-        const params = new URLSearchParams();
+        // Preserve existing params (e.g., view=reveal) instead of rebuilding from scratch
+        const params = new URLSearchParams(location.hash.slice(1));
         if (state) params.set("s", encodeJSON(state));
+        else params.delete("s");
         if (me) params.set("me", me);
+        else params.delete("me");
         const newHash = "#" + params.toString();
         if (replace) history.replaceState(null, "", newHash);
         else location.hash = newHash;
@@ -535,25 +565,23 @@
         // header game id
         el.gameIdBadge.textContent = iHaveState ? `Game ${state.gameId}` : "No game";
 
-        // Views visibility
-        el.viewCreate.style.display = iHaveState ? "none" : "block";
-        el.viewLobby.style.display = iHaveState ? "block" : "none";
-        // Reveal view shows when we have state; toggled by a flag in memory? Keep simple: stay available after button
-        // We'll auto-hide reveal unless hash has &view=reveal
+        // Reveal mode flag from URL
         const params = new URLSearchParams(location.hash.slice(1));
         const showReveal = params.get("view") === "reveal";
-        el.viewReveal.style.display = iHaveState && showReveal ? "block" : "none";
-        el.viewLobby.style.display = iHaveState && !showReveal ? "block" : el.viewLobby.style.display;
 
-        if (showReveal && !iAmKnown) openPickSelfDialog();
+        // Views visibility
+        el.viewCreate.style.display = iHaveState ? "none" : "block";
+        el.viewLobby.style.display = iHaveState && !showReveal ? "block" : "none";
+        el.viewReveal.style.display = iHaveState && showReveal ? "block" : "none";
+
+        // Page layout class for spacious reveal board
+        document.body.classList.toggle("reveal-mode", !!(iHaveState && showReveal));
 
         // If state missing, done.
         if (!iHaveState) return;
 
-        // If user is not assigned "me", prompt to pick (non-blocking dialog)
-        if (!iAmKnown) {
-          openPickSelfDialog();
-        }
+        // If on reveal view and user hasn't picked themself yet, prompt
+        if (showReveal && !iAmKnown) openPickSelfDialog();
 
         // Lobby content
         const meObj = getMe(state, me);
@@ -576,7 +604,7 @@
 
           const left = document.createElement("div");
           left.innerHTML = `<div class="name">${escapeHtml(p.name)}</div>
-                          <div class="mono">ID: ${p.id}</div>`;
+                            <div class="mono">ID: ${p.id}</div>`;
           const status = document.createElement("div");
           status.innerHTML = p.identity
             ? `<span class="badge ok">assigned</span>`
@@ -609,12 +637,14 @@
       function renderRevealGrid() {
         const { state, me } = current;
         el.revealGrid.innerHTML = "";
+
         const meObj = getMe(state, me);
-        const hideAll = !meObj;
+        const hideAll = !meObj; // hide all identities until user picks themselves
 
         state.participants.forEach((p) => {
           const tile = document.createElement("div");
           tile.className = "tile";
+          tile.style.textAlign = "center";
 
           const name = document.createElement("div");
           name.className = "name";
@@ -627,12 +657,8 @@
             idy.textContent = "(pick yourself to reveal others)";
             idy.classList.add("muted", "blurred");
           } else if (p.id === meObj.id) {
-            idy.innerHTML = `<span class="muted">(your identity is hidden)</span>`;
-            idy.classList.add("blurred");
-            const sr = document.createElement("span");
-            sr.className = "sr";
-            sr.textContent = "(hidden)";
-            idy.appendChild(sr);
+            idy.textContent = "Hidden for you";
+            idy.classList.add("muted", "blurred");
           } else {
             idy.textContent = p.identity ?? "—";
             if (!p.identity) idy.classList.add("muted");
@@ -676,7 +702,11 @@
           btn.className = "btn small ok";
           btn.textContent = "This is me";
           btn.addEventListener("click", () => {
-            writeHash(state, p.id, true);
+            // Set me and ensure we stay in reveal view
+            const params = new URLSearchParams(location.hash.slice(1));
+            params.set("me", p.id);
+            params.set("view", "reveal");
+            location.hash = "#" + params.toString();
             el.dlgPickSelf.close();
           });
           row.append(label, document.createElement("div"), btn);
@@ -724,16 +754,16 @@
       el.pickSelfBtn2.addEventListener("click", openPickSelfDialog);
 
       function openShare() {
+        // Build a link that opens directly on Reveal and doesn't bind "me"
         const params = new URLSearchParams(location.hash.slice(1));
-        params.delete("me");
-        params.delete("view");
+        params.delete("me"); // don't bind identity
+        params.set("view", "reveal"); // always open on reveal
         const url = location.origin + location.pathname + location.search + "#" + params.toString();
 
         el.shareLink.value = url;
         drawQR(url);
         el.dlgShare.showModal();
       }
-
       el.shareBtn.addEventListener("click", openShare);
       el.shareBtn2.addEventListener("click", openShare);
 
@@ -757,7 +787,6 @@
 
       // ---------- QR Code (minimal generator): based on Kazuhiko Arase’s qrcode.js (MIT, trimmed) ----------
       // License: MIT (https://github.com/kazuhikoarase/qrcode-generator)
-      // Tiny embed sufficient for alphanumeric/byte URL content @ low error correction.
       (function () {
         function QR8bitByte(data) {
           this.mode = 4;
@@ -805,7 +834,6 @@
             this.length++;
           },
         };
-        // Extremely small, fixed version (v=3, 29x29) with ECC level L for typical URLs.
         function QRCodeV3() {
           this.typeNumber = 3;
           this.moduleCount = 29;
@@ -820,7 +848,6 @@
             this.data = new QR8bitByte(data);
           },
           make: function () {
-            // place finder patterns
             const size = this.moduleCount,
               pat = QRUtil.getPattern();
             const placeFinder = (r, c) => {
@@ -829,18 +856,14 @@
             placeFinder(0, 0);
             placeFinder(0, size - 7);
             placeFinder(size - 7, 0);
-            // timing
             for (let i = 8; i < size - 8; i++) {
               this.modules[6][i] = i % 2 == 0;
               this.modules[i][6] = i % 2 == 0;
             }
-            // reserve format bits (skip actual EC mask for tiny impl)
-            // data placement (naive, no mask), write bytes in zig-zag
-            const buf = new QRBitBuffer(); // mode
-            buf.put(4, 4); // 8-bit byte
+            const buf = new QRBitBuffer();
+            buf.put(4, 4); // mode: 8-bit byte
             buf.put(this.data.getLength(), 8);
             this.data.write(buf);
-            // terminator (pad to capacity ~50 bytes for v3-L; plenty for URLs < 90 chars if they fit then good; else truncate)
             const CAP = 50 * 8;
             for (let i = 0; i < 4 && buf.length < CAP; i++) buf.putBit(0);
             while (buf.length % 8 != 0 && buf.length < CAP) buf.putBit(0);
@@ -848,13 +871,11 @@
               buf.put(0xec, 8);
               if (buf.length < CAP) buf.put(0x11, 8);
             }
-            // zig-zag placement
             let row = size - 1,
               col = size - 1,
               dir = -1,
               bitIndex = 0;
             const isReserved = (r, c) => {
-              // finder areas + timing + format rows/cols rough reservation
               const inFinder = (rr, cc) =>
                 (rr < 7 && cc < 7) || (rr < 7 && cc >= size - 7) || (rr >= size - 7 && cc < 7);
               if (inFinder(r, c)) return true;
@@ -862,7 +883,7 @@
               return false;
             };
             while (col > 0) {
-              if (col == 6) col--; // skip timing col
+              if (col == 6) col--;
               for (let i = 0; i < size; i++) {
                 const r = row + dir * i;
                 if (r < 0 || r >= size) continue;
@@ -876,9 +897,7 @@
               }
               col -= 2;
               dir = -dir;
-              row += dir > 0 ? 0 : 0; // keep row at last pos
             }
-            // simple mask: invert where (r+c)%2==0 to improve contrast
             for (let r = 0; r < size; r++)
               for (let c = 0; c < size; c++) {
                 if (isReserved(r, c)) continue;
@@ -894,7 +913,7 @@
           qr.addData(text);
           qr.make();
           const N = qr.moduleCount,
-            scale = Math.floor(canvas.width / (N + 8)); // quiet zone
+            scale = Math.floor(canvas.width / (N + 8));
           const qz = 4 * scale;
           const size = N * scale + 2 * qz;
           canvas.width = size;
