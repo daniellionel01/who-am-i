@@ -5,10 +5,19 @@
     <title>Who am I?</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f8fa" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e1116" />
     <link rel="icon" href="https://fav.farm/%F0%9F%A5%B8" />
     <script src="/public/qrcode.js"></script>
     <style>
       :root {
+        --radius: 14px;
+        --space: clamp(10px, 2.2vw, 16px);
+        --tap: 44px; /* min touch target */
+      }
+      
+      /* Dark theme (default) */
+      :root, .dark-theme {
         --bg: #0e1116;
         --card: #161b22;
         --muted: #8b949e;
@@ -20,9 +29,21 @@
         --border: #30363d;
         --input: #0b0f14;
         --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-        --radius: 14px;
-        --space: clamp(10px, 2.2vw, 16px);
-        --tap: 44px; /* min touch target */
+      }
+      
+      /* Light theme */
+      .light-theme {
+        --bg: #f6f8fa;
+        --card: #ffffff;
+        --muted: #57606a;
+        --text: #24292f;
+        --accent: #0969da;
+        --ok: #2da44e;
+        --warn: #d4a72c;
+        --danger: #cf222e;
+        --border: #d0d7de;
+        --input: #f6f8fa;
+        --shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
       }
       * {
         box-sizing: border-box;
@@ -41,12 +62,13 @@
           Roboto,
           Arial,
           sans-serif;
-        background: radial-gradient(1200px 800px at 10% 0%, #0c121a 0%, #0e1116 40%, #0e1116 100%);
+        background: var(--bg);
         color: var(--text);
         line-height: 1.45;
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
         padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); /* keep content above fixed footer */
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
       a {
         color: var(--accent);
@@ -57,8 +79,15 @@
         top: 0;
         z-index: 3;
         backdrop-filter: blur(10px);
-        background: rgba(14, 17, 22, 0.6);
+        background: rgba(var(--bg-rgb, 14, 17, 22), 0.6);
         border-bottom: 1px solid var(--border);
+        transition: background-color 0.3s ease;
+      }
+      .dark-theme header {
+        --bg-rgb: 14, 17, 22;
+      }
+      .light-theme header {
+        --bg-rgb: 246, 248, 250;
       }
       .bar {
         max-width: 980px;
@@ -127,7 +156,6 @@
       .btn {
         cursor: pointer;
         border: 1px solid var(--border);
-        background: linear-gradient(#1b222c, #161b22);
         color: var(--text);
         padding: 10px 12px;
         border-radius: 10px;
@@ -135,6 +163,13 @@
         letter-spacing: 0.2px;
         min-height: var(--tap);
         line-height: 1.1;
+        transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      }
+      .dark-theme .btn {
+        background: linear-gradient(#1b222c, #161b22);
+      }
+      .light-theme .btn {
+        background: linear-gradient(#f6f8fa, #eaeef2);
       }
       .btn:hover {
         border-color: #3b4450;
@@ -154,23 +189,27 @@
         min-height: var(--tap);
       }
       .btn.ghost {
-        background: transparent;
+        background: transparent !important;
       }
       .btn.accent {
-        background: linear-gradient(#1580ff, #0e6ae6);
+        background: linear-gradient(#1580ff, #0e6ae6) !important;
         border-color: #2b78ff;
+        color: white;
       }
       .btn.ok {
-        background: linear-gradient(#2ea043, #238636);
+        background: linear-gradient(#2ea043, #238636) !important;
         border-color: #2ea043;
+        color: white;
       }
       .btn.warn {
-        background: linear-gradient(#d29922, #b8841c);
+        background: linear-gradient(#d29922, #b8841c) !important;
         border-color: #d29922;
+        color: white;
       }
       .btn.danger {
-        background: linear-gradient(#f85149, #da3b32);
+        background: linear-gradient(#f85149, #da3b32) !important;
         border-color: #f85149;
+        color: white;
       }
 
       input[type="text"] {
@@ -200,7 +239,8 @@
         padding: 10px;
         border: 1px solid var(--border);
         border-radius: 12px;
-        background: #11161d;
+        background: var(--card);
+        transition: background-color 0.3s ease;
       }
       .badge {
         display: inline-flex;
@@ -240,11 +280,12 @@
         padding: 12px;
         border: 1px solid var(--border);
         border-radius: 12px;
-        background: #0f141b;
+        background: var(--card);
         min-height: 84px;
         display: grid;
         align-content: start;
         gap: 8px;
+        transition: background-color 0.3s ease;
       }
       .name {
         font-weight: 700;
@@ -313,7 +354,8 @@
         padding: 12px;
         border: 1px dashed var(--border);
         border-radius: 12px;
-        background: #0f141b;
+        background: var(--card);
+        transition: background-color 0.3s ease;
       }
       .qr > #qrBox {
         width: 100%;
@@ -337,12 +379,19 @@
         pointer-events: auto;
         font-size: 12px;
         color: var(--muted);
-        background: rgba(22, 27, 34, 0.85);
+        background: rgba(var(--card-rgb, 22, 27, 34), 0.85);
         border: 1px solid var(--border);
         padding: 6px 10px;
         border-radius: 999px;
         backdrop-filter: blur(6px);
         margin-bottom: env(safe-area-inset-bottom, 0px);
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+      .dark-theme .footer .inner {
+        --card-rgb: 22, 27, 34;
+      }
+      .light-theme .footer .inner {
+        --card-rgb: 255, 255, 255;
       }
       .sr {
         position: absolute;
@@ -440,6 +489,9 @@
           <div id="gameIdBadge" class="pill" title="Game ID"></div>
         </div>
         <div class="row">
+          <button id="themeToggleBtn" class="btn small ghost" aria-label="Toggle theme">
+            <span id="themeIcon">☀️</span>
+          </button>
           <button id="shareBtn" class="btn small">Share / QR</button>
           <button id="newGameBtn" class="btn small danger">New game</button>
         </div>
@@ -619,6 +671,41 @@
 
       // ---------- app state (derived from URL only) ----------
       let current = readHash(); // {state, me}
+      
+      // ---------- theme management ----------
+      function initTheme() {
+        // Check if user has a saved preference
+        let theme = localStorage.getItem('theme');
+        
+        // If no saved preference, use system preference
+        if (!theme && window.matchMedia) {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        // Default to dark if nothing else
+        theme = theme || 'dark';
+        
+        document.documentElement.classList.toggle('light-theme', theme === 'light');
+        document.documentElement.classList.toggle('dark-theme', theme === 'dark');
+        updateThemeIcon(theme);
+      }
+      
+      function toggleTheme() {
+        const isLight = document.documentElement.classList.contains('light-theme');
+        const newTheme = isLight ? 'dark' : 'light';
+        
+        document.documentElement.classList.toggle('light-theme', newTheme === 'light');
+        document.documentElement.classList.toggle('dark-theme', newTheme === 'dark');
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+      }
+      
+      function updateThemeIcon(theme) {
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeIcon) {
+          themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+        }
+      }
 
       // ---------- DOM refs ----------
       const el = {
@@ -931,6 +1018,27 @@
       }
 
       // ---------- boot ----------
+      // Initialize theme before rendering
+      initTheme();
+      
+      // Theme toggle event listener
+      document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+      
+      // Listen for system theme changes
+      if (window.matchMedia) {
+        const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        // Only update if the user hasn't set a preference
+        colorSchemeQuery.addEventListener('change', (e) => {
+          if (!localStorage.getItem('theme')) {
+            const newTheme = e.matches ? 'dark' : 'light';
+            document.documentElement.classList.toggle('light-theme', newTheme === 'light');
+            document.documentElement.classList.toggle('dark-theme', newTheme === 'dark');
+            updateThemeIcon(newTheme);
+          }
+        });
+      }
+      
       render();
     </script>
   </body>
