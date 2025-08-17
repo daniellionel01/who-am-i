@@ -15,9 +15,10 @@
         --space: clamp(10px, 2.2vw, 16px);
         --tap: 44px; /* min touch target */
       }
-      
+
       /* Dark theme (default) */
-      :root, .dark-theme {
+      :root,
+      .dark-theme {
         --bg: #0e1116;
         --card: #161b22;
         --muted: #8b949e;
@@ -30,7 +31,7 @@
         --input: #0b0f14;
         --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
       }
-      
+
       /* Light theme */
       .light-theme {
         --bg: #f6f8fa;
@@ -67,8 +68,10 @@
         line-height: 1.45;
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
-        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); /* keep content above fixed footer */
-        transition: background-color 0.3s ease, color 0.3s ease;
+        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
       }
       a {
         color: var(--accent);
@@ -163,7 +166,10 @@
         letter-spacing: 0.2px;
         min-height: var(--tap);
         line-height: 1.1;
-        transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        transition:
+          background 0.3s ease,
+          border-color 0.3s ease,
+          color 0.3s ease;
       }
       .dark-theme .btn {
         background: linear-gradient(#1b222c, #161b22);
@@ -366,33 +372,6 @@
         font-size: 12px;
         color: var(--muted);
       }
-      .footer {
-        position: fixed;
-        inset-inline: 0;
-        bottom: 0;
-        display: grid;
-        place-items: center;
-        padding: 12px;
-        pointer-events: none;
-      }
-      .footer .inner {
-        pointer-events: auto;
-        font-size: 12px;
-        color: var(--muted);
-        background: rgba(var(--card-rgb, 22, 27, 34), 0.85);
-        border: 1px solid var(--border);
-        padding: 6px 10px;
-        border-radius: 999px;
-        backdrop-filter: blur(6px);
-        margin-bottom: env(safe-area-inset-bottom, 0px);
-        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-      }
-      .dark-theme .footer .inner {
-        --card-rgb: 22, 27, 34;
-      }
-      .light-theme .footer .inner {
-        --card-rgb: 255, 255, 255;
-      }
       .sr {
         position: absolute;
         width: 1px;
@@ -550,10 +529,6 @@
       </section>
     </div>
 
-    <div class="footer">
-      <div class="inner">No server. State lives in the URL. You can refresh safely.</div>
-    </div>
-
     <!-- Dialogs -->
     <dialog id="dlgIdentity">
       <div class="dlg-head">
@@ -671,39 +646,39 @@
 
       // ---------- app state (derived from URL only) ----------
       let current = readHash(); // {state, me}
-      
+
       // ---------- theme management ----------
       function initTheme() {
         // Check if user has a saved preference
-        let theme = localStorage.getItem('theme');
-        
+        let theme = localStorage.getItem("theme");
+
         // If no saved preference, use system preference
         if (!theme && window.matchMedia) {
-          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
-        
+
         // Default to dark if nothing else
-        theme = theme || 'dark';
-        
-        document.documentElement.classList.toggle('light-theme', theme === 'light');
-        document.documentElement.classList.toggle('dark-theme', theme === 'dark');
+        theme = theme || "dark";
+
+        document.documentElement.classList.toggle("light-theme", theme === "light");
+        document.documentElement.classList.toggle("dark-theme", theme === "dark");
         updateThemeIcon(theme);
       }
-      
+
       function toggleTheme() {
-        const isLight = document.documentElement.classList.contains('light-theme');
-        const newTheme = isLight ? 'dark' : 'light';
-        
-        document.documentElement.classList.toggle('light-theme', newTheme === 'light');
-        document.documentElement.classList.toggle('dark-theme', newTheme === 'dark');
-        localStorage.setItem('theme', newTheme);
+        const isLight = document.documentElement.classList.contains("light-theme");
+        const newTheme = isLight ? "dark" : "light";
+
+        document.documentElement.classList.toggle("light-theme", newTheme === "light");
+        document.documentElement.classList.toggle("dark-theme", newTheme === "dark");
+        localStorage.setItem("theme", newTheme);
         updateThemeIcon(newTheme);
       }
-      
+
       function updateThemeIcon(theme) {
-        const themeIcon = document.getElementById('themeIcon');
+        const themeIcon = document.getElementById("themeIcon");
         if (themeIcon) {
-          themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+          themeIcon.textContent = theme === "light" ? "🌙" : "☀️";
         }
       }
 
@@ -1020,25 +995,25 @@
       // ---------- boot ----------
       // Initialize theme before rendering
       initTheme();
-      
+
       // Theme toggle event listener
-      document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
-      
+      document.getElementById("themeToggleBtn").addEventListener("click", toggleTheme);
+
       // Listen for system theme changes
       if (window.matchMedia) {
-        const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
+        const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
         // Only update if the user hasn't set a preference
-        colorSchemeQuery.addEventListener('change', (e) => {
-          if (!localStorage.getItem('theme')) {
-            const newTheme = e.matches ? 'dark' : 'light';
-            document.documentElement.classList.toggle('light-theme', newTheme === 'light');
-            document.documentElement.classList.toggle('dark-theme', newTheme === 'dark');
+        colorSchemeQuery.addEventListener("change", (e) => {
+          if (!localStorage.getItem("theme")) {
+            const newTheme = e.matches ? "dark" : "light";
+            document.documentElement.classList.toggle("light-theme", newTheme === "light");
+            document.documentElement.classList.toggle("dark-theme", newTheme === "dark");
             updateThemeIcon(newTheme);
           }
         });
       }
-      
+
       render();
     </script>
   </body>
