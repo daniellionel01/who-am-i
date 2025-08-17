@@ -5,13 +5,16 @@
     <title>Who am I?</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f8fa" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e1116" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5edff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1e1a3e" />
     <link rel="icon" href="https://fav.farm/%F0%9F%A5%B8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/public/qrcode.js"></script>
     <style>
       :root {
-        --radius: 14px;
+        --radius: 20px;
         --space: clamp(10px, 2.2vw, 16px);
         --tap: 44px; /* min touch target */
       }
@@ -19,32 +22,40 @@
       /* Dark theme (default) */
       :root,
       .dark-theme {
-        --bg: #0e1116;
-        --card: #161b22;
-        --muted: #8b949e;
-        --text: #e6edf3;
-        --accent: #58a6ff;
-        --ok: #2ea043;
-        --warn: #d29922;
-        --danger: #f85149;
-        --border: #30363d;
-        --input: #0b0f14;
-        --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        --bg: #1e1a3e;
+        --card: #2c2364;
+        --muted: #a89ee5;
+        --text: #f5f3ff;
+        --accent: #6d5dff;
+        --accent-rgb: 109, 93, 255;
+        --ok: #4edb8d;
+        --ok-rgb: 78, 219, 141;
+        --warn: #ffcf4b;
+        --warn-rgb: 255, 207, 75;
+        --danger: #ff6b7a;
+        --danger-rgb: 255, 107, 122;
+        --border: #4a3f8c;
+        --input: #251e54;
+        --shadow: 0 6px 20px rgba(67, 41, 149, 0.35);
       }
 
       /* Light theme */
       .light-theme {
-        --bg: #f6f8fa;
+        --bg: #f5edff;
         --card: #ffffff;
-        --muted: #57606a;
-        --text: #24292f;
-        --accent: #0969da;
-        --ok: #2da44e;
-        --warn: #d4a72c;
-        --danger: #cf222e;
-        --border: #d0d7de;
-        --input: #f6f8fa;
-        --shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        --muted: #7e6ca8;
+        --text: #352c63;
+        --accent: #7c4dff;
+        --accent-rgb: 124, 77, 255;
+        --ok: #2de275;
+        --ok-rgb: 45, 226, 117;
+        --warn: #ffb626;
+        --warn-rgb: 255, 182, 38;
+        --danger: #ff456a;
+        --danger-rgb: 255, 69, 106;
+        --border: #d8c4ff;
+        --input: #f9f5ff;
+        --shadow: 0 8px 24px rgba(124, 77, 255, 0.15);
       }
       * {
         box-sizing: border-box;
@@ -56,6 +67,7 @@
       }
       body {
         font-family:
+          'Quicksand',
           ui-sans-serif,
           system-ui,
           -apple-system,
@@ -65,13 +77,14 @@
           sans-serif;
         background: var(--bg);
         color: var(--text);
-        line-height: 1.45;
+        line-height: 1.5;
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
         padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
         transition:
           background-color 0.3s ease,
           color 0.3s ease;
+        font-weight: 500;
       }
       a {
         color: var(--accent);
@@ -106,7 +119,7 @@
       .title {
         font-weight: 700;
         letter-spacing: 0.2px;
-        font-size: clamp(18px, 4vw, 20px);
+        font-size: clamp(20px, 4vw, 24px);
       }
       .pill {
         font-size: 12px;
@@ -124,10 +137,46 @@
 
       .card {
         background: var(--card);
-        border: 1px solid var(--border);
+        border: 2px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         padding: var(--space);
+        position: relative;
+        overflow: hidden;
+        animation: cardEntrance 0.6s ease-out;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      @keyframes cardEntrance {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .card:hover {
+        box-shadow: 0 10px 30px rgba(var(--accent-rgb), 0.2);
+      }
+      
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(to right, var(--accent), var(--ok));
+        opacity: 0.2;
+        z-index: 0;
+        transition: opacity 0.5s ease;
+      }
+      
+      .card:hover::before {
+        opacity: 0.4;
       }
 
       h1,
@@ -136,10 +185,12 @@
         margin: 0 0 10px;
       }
       h1 {
-        font-size: clamp(18px, 4.5vw, 22px);
+        font-size: clamp(22px, 4.5vw, 28px);
+        font-weight: 700;
       }
       h2 {
-        font-size: clamp(16px, 3.8vw, 18px);
+        font-size: clamp(18px, 3.8vw, 22px);
+        font-weight: 600;
       }
       p {
         color: var(--muted);
@@ -158,10 +209,10 @@
       }
       .btn {
         cursor: pointer;
-        border: 1px solid var(--border);
+        border: 2px solid var(--border);
         color: var(--text);
-        padding: 10px 12px;
-        border-radius: 10px;
+        padding: 10px 14px;
+        border-radius: 18px;
         font-weight: 600;
         letter-spacing: 0.2px;
         min-height: var(--tap);
@@ -169,7 +220,25 @@
         transition:
           background 0.3s ease,
           border-color 0.3s ease,
-          color 0.3s ease;
+          color 0.3s ease,
+          transform 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.2);
+        border-color: var(--accent);
+      }
+      
+      .btn:active {
+        transform: scale(0.97);
+      }
+      
+      .btn.accent:hover, .btn.ok:hover, .btn.warn:hover, .btn.danger:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
       }
       .dark-theme .btn {
         background: linear-gradient(#1b222c, #161b22);
@@ -220,16 +289,22 @@
 
       input[type="text"] {
         width: 100%;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
+        padding: 14px 18px;
+        border-radius: 18px;
+        border: 2px solid var(--border);
         background: var(--input);
         color: var(--text);
         outline: none;
         min-height: var(--tap);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+      input[type="text"]:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 109, 93, 255), 0.2);
       }
       input[type="text"]::placeholder {
-        color: #7b8591;
+        color: var(--muted);
+        opacity: 0.6;
       }
 
       .list {
@@ -242,36 +317,60 @@
         grid-template-columns: 1fr auto auto;
         gap: 8px;
         align-items: center;
-        padding: 10px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
+        padding: 14px;
+        border: 2px solid var(--border);
+        border-radius: 18px;
         background: var(--card);
-        transition: background-color 0.3s ease;
+        transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+      }
+      
+      .person:hover {
+        border-color: var(--accent);
+        transform: translateX(3px);
       }
       .badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         font-size: 12px;
-        padding: 3px 8px;
+        padding: 4px 10px;
         border-radius: 999px;
         border: 1px solid var(--border);
         color: var(--muted);
         white-space: nowrap;
+        transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+      }
+      
+      .badge:hover {
+        transform: scale(1.05);
       }
       .badge.ok {
         color: #9fe3af;
-        border-color: rgba(46, 160, 67, 0.4);
-        background: rgba(46, 160, 67, 0.08);
+        border-color: rgba(var(--ok-rgb), 0.4);
+        background: rgba(var(--ok-rgb), 0.08);
+        animation: pulse 2s infinite;
       }
       .badge.na {
         color: #ffcab2;
-        border-color: rgba(210, 153, 34, 0.4);
-        background: rgba(210, 153, 34, 0.08);
+        border-color: rgba(var(--warn-rgb), 0.4);
+        background: rgba(var(--warn-rgb), 0.08);
+      }
+      
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(var(--ok-rgb), 0.3);
+        }
+        70% {
+          box-shadow: 0 0 0 6px rgba(var(--ok-rgb), 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(var(--ok-rgb), 0);
+        }
       }
       .mono {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 12px;
+        font-family: 'Quicksand', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
         color: var(--muted);
         word-break: break-all;
       }
@@ -283,23 +382,55 @@
         gap: 10px;
       }
       .tile {
-        padding: 12px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
+        padding: 16px;
+        border: 2px solid var(--border);
+        border-radius: 20px;
         background: var(--card);
-        min-height: 84px;
+        min-height: 100px;
         display: grid;
         align-content: start;
         gap: 8px;
-        transition: background-color 0.3s ease;
+        transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      
+      .tile:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.15);
+        border-color: var(--accent);
+      }
+      
+      .tile::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--accent);
+        opacity: 0.15;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleX(0.5);
+        transform-origin: center;
+      }
+      
+      .tile:hover::before {
+        transform: scaleX(1);
+        opacity: 0.3;
       }
       .name {
         font-weight: 700;
         word-break: break-word;
+        color: var(--text);
+        padding: 0 2px;
       }
       .identity {
         color: #cfd7e3;
         word-break: break-word;
+        font-weight: 600;
+        letter-spacing: 0.3px;
       }
       .blurred {
         filter: blur(7px);
@@ -464,15 +595,15 @@
     <header>
       <div class="bar">
         <div class="row">
-          <div class="title">Who am I?</div>
+          <div class="title">🎭 Who am I? 🎮</div>
           <div id="gameIdBadge" class="pill" title="Game ID"></div>
         </div>
         <div class="row">
           <button id="themeToggleBtn" class="btn small ghost" aria-label="Toggle theme">
             <span id="themeIcon">☀️</span>
           </button>
-          <button id="shareBtn" class="btn small">Share / QR</button>
-          <button id="newGameBtn" class="btn small danger">New game</button>
+          <button id="shareBtn" class="btn small">🔗 Share / QR</button>
+          <button id="newGameBtn" class="btn small danger">🎮 New game</button>
         </div>
       </div>
     </header>
@@ -484,7 +615,7 @@
         <p>Enter your name. You’ll be the first participant. Then add others and assign identities.</p>
         <div class="row">
           <input id="creatorName" type="text" placeholder="Your name…" />
-          <button id="createGameBtn" class="btn accent">Create game</button>
+          <button id="createGameBtn" class="btn accent">🎲 Create game</button>
         </div>
       </section>
 
@@ -495,15 +626,15 @@
 
         <div class="row">
           <input id="addName" type="text" placeholder="Add participant name…" />
-          <button id="addBtn" class="btn">Add</button>
+          <button id="addBtn" class="btn">➕ Add</button>
         </div>
 
         <div id="peopleList" class="list"></div>
 
         <div class="divider"></div>
         <div class="row">
-          <button id="viewIdentitiesBtn" class="btn ok">View identities</button>
-          <button id="pickSelfBtn" class="btn ghost">I’m not the right person</button>
+          <button id="viewIdentitiesBtn" class="btn ok">👁️ View identities</button>
+          <button id="pickSelfBtn" class="btn ghost">🙋 I'm not the right person</button>
         </div>
         <p class="hint">
           Tip: Hand the device to the person assigning an identity and use “Set identity”. Identities don’t show here.
@@ -514,14 +645,14 @@
       <section id="viewReveal" class="card" style="display: none">
         <div class="row" style="justify-content: space-between; align-items: baseline">
           <h1>Everyone’s identity (except yours)</h1>
-          <button id="backToLobbyBtn" class="btn ghost small">Back to edit</button>
+          <button id="backToLobbyBtn" class="btn ghost small">⬅️ Back to edit</button>
         </div>
         <p class="mono" id="revealMeInfo"></p>
         <div id="revealGrid" class="grid"></div>
         <div class="divider"></div>
         <div class="row">
-          <button id="shareBtn2" class="btn small">Share / QR</button>
-          <button id="pickSelfBtn2" class="btn ghost small">I’m not the right person</button>
+          <button id="shareBtn2" class="btn small">🔗 Share / QR</button>
+          <button id="pickSelfBtn2" class="btn ghost small">🙋 I'm not the right person</button>
         </div>
         <p class="hint">
           Share this page so others can pick who they are. Their own identity will stay hidden to them.
@@ -540,8 +671,8 @@
         <input id="identityInput" type="text" placeholder="Type the secret identity…" />
       </div>
       <div class="dlg-foot">
-        <button class="btn ghost" onclick="document.getElementById('dlgIdentity').close()">Cancel</button>
-        <button id="saveIdentityBtn" class="btn ok">Save identity</button>
+        <button class="btn ghost" onclick="document.getElementById('dlgIdentity').close()">❌ Cancel</button>
+        <button id="saveIdentityBtn" class="btn ok">💾 Save identity</button>
       </div>
     </dialog>
 
@@ -564,7 +695,7 @@
       <div class="dlg-body">
         <div class="row">
           <input id="shareLink" type="text" readonly />
-          <button id="copyLinkBtn" class="btn">Copy link</button>
+          <button id="copyLinkBtn" class="btn">📋 Copy link</button>
         </div>
         <div class="divider"></div>
         <div class="qr">
