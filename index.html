@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" href="https://fav.farm/%F0%9F%A5%B8" />
-    <script src="qrcode.js"></script>
+    <script src="/public/qrcode.js"></script>
     <style>
       :root {
         --bg: #0e1116;
@@ -662,7 +662,7 @@
 
         // header game id
         el.gameIdBadge.textContent = iHaveState ? `Game ${state.gameId}` : "No game";
-        
+
         // Enable/disable share buttons based on game state
         el.shareBtn.disabled = !iHaveState;
         el.shareBtn2.disabled = !iHaveState;
@@ -864,7 +864,7 @@
           alert("No active game to share.");
           return;
         }
-        
+
         // Build a link that opens directly on Reveal and doesn't bind "me"
         const params = new URLSearchParams(location.hash.slice(1));
         params.delete("me"); // don't bind identity
