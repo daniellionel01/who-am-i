@@ -1,8 +1,4 @@
 @import "tailwindcss";
 @import "./basecoat.css";
 
-@theme {
-  --default-border-width: 3px;
-}
-
 @import "./theme.css";
