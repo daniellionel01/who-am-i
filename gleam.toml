@@ -18,3 +18,4 @@ lustre_dev_tools = ">= 2.3.6 and < 3.0.0"
 
 [tools.lustre.html]
 scripts = [{ src = "https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/all.min.js" }]
+meta = [{ rel="icon", type = "image-x-icon", href="https://fav.farm/%F0%9F%A5%B8" }]

@@ -1,0 +1,4 @@
+# TODO
+
+- favicon
+- plausible analytics
