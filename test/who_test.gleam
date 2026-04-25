@@ -1,13 +1,14 @@
 import gleeunit
+import who
 
 pub fn main() -> Nil {
   gleeunit.main()
 }
 
-// gleeunit test functions end in `_test`
-pub fn hello_world_test() {
-  let name = "Joe"
-  let greeting = "Hello, " <> name <> "!"
+pub fn base64_test() {
+  let str = "Joe"
+  assert str == who.from_base64(who.to_base64(str))
 
-  assert greeting == "Hello, Joe!"
+  let str = "hello 👋"
+  assert str == who.from_base64(who.to_base64(str))
 }

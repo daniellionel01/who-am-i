@@ -3,7 +3,6 @@ import glaze/basecoat/card
 import glaze/basecoat/form
 import glaze/basecoat/input
 import glaze/basecoat/label
-import gleam/bool
 import gleam/int
 import gleam/list
 import lustre
@@ -57,7 +56,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
           let model =
             Game(
               players: [Player(name: player_name, identity: "")],
-              local_player: player_name,
+              local_player: "",
               mode: Editing,
             )
           #(model, effect.none())
@@ -115,8 +114,10 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
           let confirm_dialog = {
             use dispatch, _root <- effect.before_paint
             let agreed = confirm("Are you sure you want to reset?")
-            use <- bool.guard(!agreed, Nil)
-            dispatch(ResetGameConfirmed)
+            case agreed {
+              False -> Nil
+              True -> dispatch(ResetGameConfirmed)
+            }
           }
           #(model, confirm_dialog)
         }
@@ -163,12 +164,6 @@ pub fn view(model: Model) -> Element(Message) {
           ),
         ]),
       ])
-    }
-    Game(players: _, local_player: "", mode: _) -> {
-      todo
-    }
-    Game(players: _, local_player: _, mode: Identities) -> {
-      html.div([], [html.text("")])
     }
     Game(players:, local_player: _, mode: Editing) -> {
       let player_inputs =
@@ -247,14 +242,25 @@ pub fn view(model: Model) -> Element(Message) {
                 button.outline([event.on_click(AddPlayer)], [
                   html.text("Add Player"),
                 ]),
-                button.submit([], [
-                  html.text("Share Game"),
+                html.div([attribute.class("flex w-full gap-4")], [
+                  button.button([attribute.class("flex-grow")], [
+                    html.text("Share Game"),
+                  ]),
+                  button.button([attribute.class("flex-grow")], [
+                    html.text("View Identities"),
+                  ]),
                 ]),
               ]),
             ]),
           ),
         ]),
       ])
+    }
+    Game(players: _, local_player: "", mode: Identities) -> {
+      html.div([], [html.text("")])
+    }
+    Game(players: _, local_player: _, mode: Identities) -> {
+      html.div([], [html.text("")])
     }
   }
 
@@ -263,13 +269,7 @@ pub fn view(model: Model) -> Element(Message) {
   ])
 }
 
-@external(javascript, "./who.ffi.mjs", "confirm")
-pub fn confirm(message: String) -> Bool
-
-@external(javascript, "./who.ffi.mjs", "alert")
-pub fn alert(message: String) -> Bool
-
-fn icon_x() {
+pub fn icon_x() {
   svg.svg(
     [
       attribute.class("lucide lucide-x-icon lucide-x"),
@@ -289,3 +289,21 @@ fn icon_x() {
     ],
   )
 }
+
+@external(javascript, "./who.ffi.mjs", "confirm")
+pub fn confirm(message: String) -> Bool
+
+@external(javascript, "./who.ffi.mjs", "alert")
+pub fn alert(message: String) -> Nil
+
+@external(javascript, "./who.ffi.mjs", "encodeURIComponent")
+pub fn encode_uri_component(str: String) -> String
+
+@external(javascript, "./who.ffi.mjs", "decodeURIComponent")
+pub fn decode_uri_component(str: String) -> String
+
+@external(javascript, "./who.ffi.mjs", "toBase64")
+pub fn to_base64(str: String) -> String
+
+@external(javascript, "./who.ffi.mjs", "fromBase64")
+pub fn from_base64(str: String) -> String
