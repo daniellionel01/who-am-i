@@ -164,16 +164,15 @@ pub fn view(model: Model) -> Element(Message) {
         ]),
       ])
     }
-    Game(players:, local_player: "", mode:) -> {
+    Game(players: _, local_player: "", mode: _) -> {
       todo
     }
-    Game(players:, local_player:, mode: Identities) -> {
+    Game(players: _, local_player: _, mode: Identities) -> {
       html.div([], [html.text("")])
     }
-    Game(players:, local_player:, mode: Editing) -> {
+    Game(players:, local_player: _, mode: Editing) -> {
       let player_inputs =
         list.index_map(players, fn(player, index) {
-          // 🎭❓
           let index_str = int.to_string(index)
 
           html.div([attribute.class("flex gap-2")], [
