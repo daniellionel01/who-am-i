@@ -22,7 +22,7 @@ export function alert(message) {
  * @param {string} str
  * @returns {string}
  */
-export function toBase64(str) {
+export function to_base_64(str) {
   const bytes = new TextEncoder().encode(str);
   let binary = "";
 
@@ -36,7 +36,7 @@ export function toBase64(str) {
   return btoa(binary);
 }
 
-export function fromBase64(base64) {
+export function from_base_64(base64) {
   // The incoming base64 string is utf8 encoded,
   // so we have to do some javascript string magic.
   //
@@ -46,10 +46,34 @@ export function fromBase64(base64) {
   return new TextDecoder().decode(bytes);
 }
 
-export function encodeURIComponent(str) {
+export function encode_uri_component(str) {
   return encodeURIComponent(str);
 }
 
-export function decodeURIComponent(str) {
+export function decode_uri_component(str) {
   return decodeURIComponent(str);
+}
+
+/**
+ * @param {number} length
+ * @returns {string}
+ */
+export function random_id(length) {
+  const alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+  const bytes = new Uint8Array(length * 2);
+  let id = "";
+
+  while (id.length < length) {
+    crypto.getRandomValues(bytes);
+
+    for (const byte of bytes) {
+      if (id.length >= length) break;
+
+      if (byte < 252) {
+        id += alphabet[byte % alphabet.length];
+      }
+    }
+  }
+
+  return id;
 }

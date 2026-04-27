@@ -5,11 +5,13 @@ import glaze/basecoat/input
 import glaze/basecoat/label
 import gleam/int
 import gleam/list
+import iv
 import lustre
 import lustre/attribute.{attribute}
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import lustre/element/html
+import lustre/element/keyed
 import lustre/element/svg
 import lustre/event
 
@@ -21,7 +23,7 @@ pub fn main() {
 }
 
 pub type Player {
-  Player(name: String, identity: String)
+  Player(id: String, name: String, identity: String)
 }
 
 pub type ViewMode {
@@ -31,7 +33,7 @@ pub type ViewMode {
 
 pub type Model {
   NewGame
-  Game(players: List(Player), local_player: String, mode: ViewMode)
+  Game(players: iv.Array(Player), local_player: String, mode: ViewMode)
 }
 
 pub fn init(_: Nil) -> #(Model, Effect(Message)) {
@@ -46,6 +48,12 @@ pub type Message {
   AddPlayer
   ResetGameClicked
   ResetGameConfirmed
+  SwitchToIdentitiesView
+  SwitchToEditingView
+}
+
+pub fn create_player_id() {
+  random_id(7)
 }
 
 pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
@@ -55,7 +63,9 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
         StartGame(player_name:) -> {
           let model =
             Game(
-              players: [Player(name: player_name, identity: "")],
+              players: iv.from_list([
+                Player(id: create_player_id(), name: player_name, identity: ""),
+              ]),
               local_player: "",
               mode: Editing,
             )
@@ -65,7 +75,9 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
         | RemovePlayer(_)
         | AddPlayer
         | ResetGameClicked
-        | ResetGameConfirmed -> panic as "reached impossible state"
+        | ResetGameConfirmed
+        | SwitchToIdentitiesView
+        | SwitchToEditingView -> panic as "reached impossible state"
       }
     }
     Game(players:, local_player: _, mode: _) -> {
@@ -86,19 +98,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
               #(model, alert_dialog)
             }
             _ -> {
-              // This is super inefficient, since linked lists are more than
-              // suboptimal to remove elements from in the middle of the list.
-              //
-              // A better and more performant implementation would use iv or at least have
-              // an additional id for each player that we would filter out without
-              // having to rely on the index.
-              //
-              let players =
-                players
-                |> list.index_map(fn(item, index) { #(item, index) })
-                |> list.filter(fn(row) { row.1 != remove_index })
-                |> list.map(fn(row) { row.0 })
-
+              let players = iv.try_delete(players, at: remove_index)
               let model = Game(..model, players:)
               #(model, effect.none())
             }
@@ -106,7 +106,10 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
         }
         AddPlayer -> {
           let players =
-            list.append(model.players, [Player(name: "", identity: "")])
+            iv.append(
+              model.players,
+              Player(id: create_player_id(), name: "", identity: ""),
+            )
           let model = Game(..model, players:)
           #(model, effect.none())
         }
@@ -123,6 +126,14 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
         }
         ResetGameConfirmed -> {
           #(NewGame, effect.none())
+        }
+        SwitchToIdentitiesView -> {
+          let model = Game(..model, local_player: "", mode: Identities)
+          #(model, effect.none())
+        }
+        SwitchToEditingView -> {
+          let model = Game(..model, local_player: "", mode: Editing)
+          #(model, effect.none())
         }
 
         StartGame(_) -> panic as "reached impossible state"
@@ -166,53 +177,56 @@ pub fn view(model: Model) -> Element(Message) {
       ])
     }
     Game(players:, local_player: _, mode: Editing) -> {
-      let player_inputs =
-        list.index_map(players, fn(player, index) {
+      let player_input_elements =
+        iv.index_map(players, fn(player, index) {
           let index_str = int.to_string(index)
 
-          html.div([attribute.class("flex gap-2")], [
-            html.div([attribute.class("w-full space-y-2")], [
-              html.div([attribute.class("flex gap-2")], [
-                label.label(
-                  [
-                    attribute.class("w-16"),
-                    attribute.for("player_names-" <> index_str),
-                  ],
-                  [
-                    html.text("Name:"),
-                  ],
-                ),
-                input.input([
-                  input.id("player_names-" <> index_str),
-                  input.name("player_names[]"),
-                  input.placeholder("John Doe"),
-                  attribute.required(True),
-                  attribute.default_value(player.name),
+          let el =
+            html.div([attribute.class("flex gap-2")], [
+              html.div([attribute.class("w-full space-y-2")], [
+                html.div([attribute.class("flex gap-2")], [
+                  label.label(
+                    [
+                      attribute.class("w-16"),
+                      attribute.for("player_names-" <> index_str),
+                    ],
+                    [
+                      html.text("Name:"),
+                    ],
+                  ),
+                  input.input([
+                    input.id("player_names-" <> index_str),
+                    input.name("player_names[]"),
+                    input.placeholder("John Doe"),
+                    attribute.required(True),
+                    attribute.default_value(player.name),
+                  ]),
+                ]),
+                html.div([attribute.class("flex gap-2")], [
+                  label.label(
+                    [
+                      attribute.class("w-16"),
+                      attribute.for("player_identities-" <> index_str),
+                    ],
+                    [
+                      html.text("Identity:"),
+                    ],
+                  ),
+                  input.password([
+                    input.id("player_identities-" <> index_str),
+                    input.name("player_identities[]"),
+                    attribute.required(True),
+                    attribute.default_value(player.identity),
+                  ]),
                 ]),
               ]),
-              html.div([attribute.class("flex gap-2")], [
-                label.label(
-                  [
-                    attribute.class("w-16"),
-                    attribute.for("player_identities-" <> index_str),
-                  ],
-                  [
-                    html.text("Identity:"),
-                  ],
-                ),
-                input.password([
-                  input.id("player_identities-" <> index_str),
-                  input.name("player_identities[]"),
-                  attribute.required(True),
-                  attribute.default_value(player.identity),
-                ]),
+              button.icon_outline([event.on_click(RemovePlayer(index))], [
+                icon_x(),
               ]),
-            ]),
-            button.icon_outline([event.on_click(RemovePlayer(index))], [
-              icon_x(),
-            ]),
-          ])
+            ])
+          #(player.id, el)
         })
+      let player_inputs = keyed.fragment(iv.to_list(player_input_elements))
 
       card.card([], [
         card.header([attribute.class("flex")], [
@@ -237,7 +251,8 @@ pub fn view(model: Model) -> Element(Message) {
                 StartGame(player_name: name)
               }),
             ],
-            list.append(player_inputs, [
+            [
+              player_inputs,
               html.div([attribute.class("flex flex-col gap-4")], [
                 button.outline([event.on_click(AddPlayer)], [
                   html.text("Add Player"),
@@ -246,18 +261,59 @@ pub fn view(model: Model) -> Element(Message) {
                   button.button([attribute.class("flex-grow")], [
                     html.text("Share Game"),
                   ]),
-                  button.button([attribute.class("flex-grow")], [
-                    html.text("View Identities"),
-                  ]),
+                  button.button(
+                    [
+                      event.on_click(SwitchToIdentitiesView),
+                      attribute.class("flex-grow"),
+                    ],
+                    [
+                      html.text("View Identities"),
+                    ],
+                  ),
                 ]),
+              ]),
+            ],
+          ),
+        ]),
+      ])
+    }
+    Game(players:, local_player: "", mode: Identities) -> {
+      let player_identities =
+        iv.map(players, fn(player) {
+          keyed.div([], [#(player.id, html.div([], []))])
+        })
+
+      card.card([], [
+        card.header([attribute.class("flex")], [
+          html.div([attribute.class("w-full space-y-2")], [
+            card.title([], [html.text("Who am I? 🥸")]),
+            card.description([], [
+              html.text(
+                "Choose your name. Your identity will be hidden from you.",
+              ),
+            ]),
+          ]),
+          button.destructive([event.on_click(ResetGameClicked)], [
+            html.text("Reset"),
+          ]),
+        ]),
+        card.content([], [
+          form.form(
+            [
+              attribute.class("space-y-8"),
+              event.on_submit(fn(values) {
+                let assert Ok(name) = list.key_find(values, "name")
+                StartGame(player_name: name)
+              }),
+            ],
+            list.append(iv.to_list(player_identities), [
+              button.button([event.on_click(SwitchToEditingView)], [
+                html.text("Back to Edit"),
               ]),
             ]),
           ),
         ]),
       ])
-    }
-    Game(players: _, local_player: "", mode: Identities) -> {
-      html.div([], [html.text("")])
     }
     Game(players: _, local_player: _, mode: Identities) -> {
       html.div([], [html.text("")])
@@ -296,14 +352,17 @@ pub fn confirm(message: String) -> Bool
 @external(javascript, "./who.ffi.mjs", "alert")
 pub fn alert(message: String) -> Nil
 
-@external(javascript, "./who.ffi.mjs", "encodeURIComponent")
+@external(javascript, "./who.ffi.mjs", "encode_uri_component")
 pub fn encode_uri_component(str: String) -> String
 
-@external(javascript, "./who.ffi.mjs", "decodeURIComponent")
+@external(javascript, "./who.ffi.mjs", "decode_uri_component")
 pub fn decode_uri_component(str: String) -> String
 
-@external(javascript, "./who.ffi.mjs", "toBase64")
+@external(javascript, "./who.ffi.mjs", "to_base_64")
 pub fn to_base64(str: String) -> String
 
-@external(javascript, "./who.ffi.mjs", "fromBase64")
+@external(javascript, "./who.ffi.mjs", "from_base_64")
 pub fn from_base64(str: String) -> String
+
+@external(javascript, "./who.ffi.mjs", "random_id")
+pub fn random_id(length: Int) -> String
