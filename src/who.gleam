@@ -3,6 +3,8 @@ import glaze/basecoat/card
 import glaze/basecoat/form
 import glaze/basecoat/input
 import glaze/basecoat/label
+import gleam/dynamic
+import gleam/dynamic/decode
 import gleam/int
 import gleam/list
 import iv
@@ -28,6 +30,7 @@ pub type Player {
 
 pub type ViewMode {
   Editing
+  ShareGame
   Identities
 }
 
@@ -45,11 +48,35 @@ pub type Message {
   StartGame(player_name: String)
   ChooseLocalPlayer(local_player: String)
   RemovePlayer(index: Int)
+  UpdatePlayerName(id: String, name: String)
+  UpdatePlayerIdentity(id: String, identity: String)
   AddPlayer
   ResetGameClicked
   ResetGameConfirmed
   SwitchToIdentitiesView
   SwitchToEditingView
+  ShareGameView
+}
+
+pub type ButtonAction {
+  SwitchToIdentitiesAction
+  ShareGameAction
+}
+
+fn button_action_decoder() -> decode.Decoder(ButtonAction) {
+  use variant <- decode.then(decode.string)
+  case variant {
+    "switch_to_identities_action" -> decode.success(SwitchToIdentitiesAction)
+    "share_game_action" -> decode.success(ShareGameAction)
+    _ -> decode.failure(SwitchToIdentitiesAction, "ButtonAction")
+  }
+}
+
+pub fn button_action_to_string(action: ButtonAction) {
+  case action {
+    SwitchToIdentitiesAction -> "switch_to_identities_action"
+    ShareGameAction -> "share_game_action"
+  }
 }
 
 pub fn create_player_id() {
@@ -77,6 +104,9 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
         | ResetGameClicked
         | ResetGameConfirmed
         | SwitchToIdentitiesView
+        | ShareGameView
+        | UpdatePlayerName(_, _)
+        | UpdatePlayerIdentity(_, _)
         | SwitchToEditingView -> panic as "reached impossible state"
       }
     }
@@ -135,6 +165,32 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
           let model = Game(..model, local_player: "", mode: Editing)
           #(model, effect.none())
         }
+        ShareGameView -> {
+          let model = Game(..model, mode: ShareGame)
+          #(model, effect.none())
+        }
+        UpdatePlayerName(id:, name:) -> {
+          let players =
+            iv.map(model.players, fn(player) {
+              case player.id == id {
+                False -> player
+                True -> Player(..player, name:)
+              }
+            })
+          let model = Game(..model, players:)
+          #(model, effect.none())
+        }
+        UpdatePlayerIdentity(id:, identity:) -> {
+          let players =
+            iv.map(model.players, fn(player) {
+              case player.id == id {
+                False -> player
+                True -> Player(..player, identity:)
+              }
+            })
+          let model = Game(..model, players:)
+          #(model, effect.none())
+        }
 
         StartGame(_) -> panic as "reached impossible state"
       }
@@ -190,16 +246,17 @@ pub fn view(model: Model) -> Element(Message) {
                       attribute.class("w-16"),
                       attribute.for("player_names-" <> index_str),
                     ],
-                    [
-                      html.text("Name:"),
-                    ],
+                    [html.text("Name:")],
                   ),
                   input.input([
                     input.id("player_names-" <> index_str),
                     input.name("player_names[]"),
                     input.placeholder("John Doe"),
                     attribute.required(True),
-                    attribute.default_value(player.name),
+                    attribute.value(player.name),
+                    event.on_input(fn(name) {
+                      UpdatePlayerName(player.id, name)
+                    }),
                   ]),
                 ]),
                 html.div([attribute.class("flex gap-2")], [
@@ -208,15 +265,16 @@ pub fn view(model: Model) -> Element(Message) {
                       attribute.class("w-16"),
                       attribute.for("player_identities-" <> index_str),
                     ],
-                    [
-                      html.text("Identity:"),
-                    ],
+                    [html.text("Identity:")],
                   ),
                   input.password([
                     input.id("player_identities-" <> index_str),
                     input.name("player_identities[]"),
                     attribute.required(True),
-                    attribute.default_value(player.identity),
+                    attribute.value(player.identity),
+                    event.on_input(fn(identity) {
+                      UpdatePlayerIdentity(player.id, identity)
+                    }),
                   ]),
                 ]),
               ]),
@@ -247,8 +305,17 @@ pub fn view(model: Model) -> Element(Message) {
             [
               attribute.class("space-y-8"),
               event.on_submit(fn(values) {
-                let assert Ok(name) = list.key_find(values, "name")
-                StartGame(player_name: name)
+                let assert Ok(action) = list.key_find(values, "action")
+                let assert Ok(action) =
+                  decode.run(dynamic.string(action), button_action_decoder())
+                case action {
+                  SwitchToIdentitiesAction -> {
+                    SwitchToIdentitiesView
+                  }
+                  ShareGameAction -> {
+                    ShareGameView
+                  }
+                }
               }),
             ],
             [
@@ -258,17 +325,23 @@ pub fn view(model: Model) -> Element(Message) {
                   html.text("Add Player"),
                 ]),
                 html.div([attribute.class("flex w-full gap-4")], [
-                  button.button([attribute.class("flex-grow")], [
-                    html.text("Share Game"),
-                  ]),
-                  button.button(
+                  button.submit(
                     [
-                      event.on_click(SwitchToIdentitiesView),
                       attribute.class("flex-grow"),
+                      attribute.name("action"),
+                      attribute.value(button_action_to_string(ShareGameAction)),
                     ],
+                    [html.text("Share Game")],
+                  ),
+                  button.submit(
                     [
-                      html.text("View Identities"),
+                      attribute.class("flex-grow"),
+                      attribute.name("action"),
+                      attribute.value(button_action_to_string(
+                        SwitchToIdentitiesAction,
+                      )),
                     ],
+                    [html.text("View Identities")],
                   ),
                 ]),
               ]),
@@ -317,6 +390,28 @@ pub fn view(model: Model) -> Element(Message) {
     }
     Game(players: _, local_player: _, mode: Identities) -> {
       html.div([], [html.text("")])
+    }
+    Game(players: _, local_player: _, mode: ShareGame) -> {
+      card.card([], [
+        card.header([attribute.class("flex")], [
+          html.div([attribute.class("w-full space-y-2")], [
+            card.title([], [html.text("Who am I? 🥸")]),
+            card.description([], [
+              html.text("Let your friends scan the QR Code."),
+            ]),
+          ]),
+          button.destructive([event.on_click(ResetGameClicked)], [
+            html.text("Reset"),
+          ]),
+        ]),
+        card.content([], [
+          html.div([attribute.class("space-y-8")], [
+            button.button([event.on_click(SwitchToEditingView)], [
+              html.text("Back to Edit"),
+            ]),
+          ]),
+        ]),
+      ])
     }
   }
 
