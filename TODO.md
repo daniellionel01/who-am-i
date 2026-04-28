@@ -1,7 +1,7 @@
 # TODO
 
 - favicon
+- deploy where?
 - plausible analytics
-- qrcode with https://github.com/imcquee/glqr
 - optimize mobile
 - dark mode

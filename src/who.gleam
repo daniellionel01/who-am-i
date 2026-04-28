@@ -427,15 +427,20 @@ pub fn view(model: Model) -> Element(Message) {
             html.li([], [
               button.outline(
                 [
-                  attribute.class("w-full"),
+                  attribute.class("w-full block text-left"),
                   event.on_click(ChooseLocalPlayer(player.id)),
                 ],
-                [html.text(player.name)],
+                [
+                  html.p([attribute.class("font-semibold")], [
+                    html.text(player.name),
+                  ]),
+                ],
               ),
             ]),
           )
         })
-      let player_identities = keyed.ul([], iv.to_list(player_elements))
+      let player_identities =
+        keyed.ul([attribute.class("space-y-4")], iv.to_list(player_elements))
 
       card.card([], [
         card.header([attribute.class("flex")], [
@@ -483,8 +488,82 @@ pub fn view(model: Model) -> Element(Message) {
         ]),
       ])
     }
-    Game(players: _, local_player_id: _, mode: Identities) -> {
-      html.div([], [html.text("")])
+    Game(
+      players:,
+      local_player_id: option.Some(local_player_id),
+      mode: Identities,
+    ) -> {
+      let player_elements =
+        iv.map(players, fn(player) {
+          #(
+            player.id,
+            html.li([], [
+              button.outline(
+                [attribute.class("w-full block text-left h-auto space-y-2")],
+                [
+                  html.p([attribute.class("font-semibold")], [
+                    html.text(player.name),
+                  ]),
+                  {
+                    case local_player_id == player.id {
+                      True ->
+                        html.p([attribute.class("blur-xs")], [
+                          html.text(player.identity),
+                        ])
+                      False -> html.p([], [html.text(player.identity)])
+                    }
+                  },
+                ],
+              ),
+            ]),
+          )
+        })
+      let player_identities =
+        keyed.ul([attribute.class("space-y-4")], iv.to_list(player_elements))
+
+      card.card([], [
+        card.header([attribute.class("flex")], [
+          html.div([attribute.class("w-full space-y-2")], [
+            card.title([], [html.text("Who am I? 🥸")]),
+            card.description([], [
+              html.text("Enjoy the game!"),
+            ]),
+          ]),
+          button.destructive([event.on_click(ResetGameClicked)], [
+            html.text("Reset"),
+          ]),
+        ]),
+        card.content([], [
+          form.form(
+            [
+              attribute.class("space-y-8"),
+              event.on_submit(fn(values) {
+                let assert Ok(name) = list.key_find(values, "name")
+                StartGame(player_name: name)
+              }),
+            ],
+            [
+              player_identities,
+              html.div([attribute.class("flex w-full gap-4")], [
+                button.button(
+                  [
+                    attribute.class("flex-grow"),
+                    event.on_click(ShareGameView),
+                  ],
+                  [html.text("Share Game")],
+                ),
+                button.button(
+                  [
+                    attribute.class("flex-grow"),
+                    event.on_click(SwitchToEditingView),
+                  ],
+                  [html.text("Back to Edit")],
+                ),
+              ]),
+            ],
+          ),
+        ]),
+      ])
     }
     Game(players: _, local_player_id: _, mode: ShareGame) -> {
       card.card([], [
