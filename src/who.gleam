@@ -110,7 +110,9 @@ pub fn game_state_to_uri(players: List(Player)) -> uri.Uri {
 pub fn update_uri(model: Model) -> Effect(a) {
   effect.from(fn(_dispatch) {
     case model {
-      NewGame -> Nil
+      NewGame -> {
+        replace_state("/")
+      }
       Game(players:, local_player: _, mode: _) -> {
         let players = iv.to_list(players)
         let uri = game_state_to_uri(players)
@@ -153,7 +155,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
               local_player: "",
               mode: Editing,
             )
-          #(model, effect.none())
+          #(model, update_uri(model))
         }
         ChooseLocalPlayer(_)
         | RemovePlayer(_)
@@ -187,7 +189,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
             _ -> {
               let players = iv.try_delete(players, at: remove_index)
               let model = Game(..model, players:)
-              #(model, effect.none())
+              #(model, update_uri(model))
             }
           }
         }
@@ -198,7 +200,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
               Player(id: create_player_id(), name: "", identity: ""),
             )
           let model = Game(..model, players:)
-          #(model, effect.none())
+          #(model, update_uri(model))
         }
         ResetGameClicked -> {
           let confirm_dialog = {
@@ -212,7 +214,8 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
           #(model, confirm_dialog)
         }
         ResetGameConfirmed -> {
-          #(NewGame, effect.none())
+          let model = NewGame
+          #(model, update_uri(model))
         }
         SwitchToIdentitiesView -> {
           let model = Game(..model, local_player: "", mode: Identities)
