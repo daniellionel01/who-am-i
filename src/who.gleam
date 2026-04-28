@@ -40,7 +40,11 @@ pub type ViewMode {
 
 pub type Model {
   NewGame
-  Game(players: iv.Array(Player), local_player: String, mode: ViewMode)
+  Game(
+    players: iv.Array(Player),
+    local_player_id: option.Option(String),
+    mode: ViewMode,
+  )
 }
 
 pub fn init(_: Nil) -> #(Model, Effect(Message)) {
@@ -51,7 +55,7 @@ pub fn init(_: Nil) -> #(Model, Effect(Message)) {
         Error(_) -> NewGame
         Ok(players) -> {
           let players = iv.from_list(players)
-          Game(players:, local_player: "", mode: Editing)
+          Game(players:, local_player_id: option.None, mode: Editing)
         }
       }
     }
@@ -62,7 +66,7 @@ pub fn init(_: Nil) -> #(Model, Effect(Message)) {
 
 pub type Message {
   StartGame(player_name: String)
-  ChooseLocalPlayer(local_player: String)
+  ChooseLocalPlayer(player_id: String)
   RemovePlayer(index: Int)
   UpdatePlayerName(id: String, name: String)
   UpdatePlayerIdentity(id: String, identity: String)
@@ -114,7 +118,7 @@ pub fn update_uri(model: Model) -> Effect(a) {
       NewGame -> {
         replace_state("/")
       }
-      Game(players:, local_player: _, mode: _) -> {
+      Game(players:, local_player_id: _, mode: _) -> {
         let players = iv.to_list(players)
         let uri = game_state_to_uri(players)
         replace_state("/?" <> option.unwrap(uri.query, ""))
@@ -153,7 +157,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
               players: iv.from_list([
                 Player(id: create_player_id(), name: player_name, identity: ""),
               ]),
-              local_player: "",
+              local_player_id: option.None,
               mode: Editing,
             )
           #(model, update_uri(model))
@@ -170,11 +174,15 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
         | SwitchToEditingView -> panic as "reached impossible state"
       }
     }
-    Game(players:, local_player: _, mode: _) -> {
+    Game(players:, local_player_id: _, mode: _) -> {
       case message {
-        ChooseLocalPlayer(local_player:) -> {
+        ChooseLocalPlayer(player_id:) -> {
           let model =
-            Game(..model, local_player: local_player, mode: Identities)
+            Game(
+              ..model,
+              local_player_id: option.Some(player_id),
+              mode: Identities,
+            )
           #(model, effect.none())
         }
         RemovePlayer(index: remove_index) -> {
@@ -219,11 +227,11 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
           #(model, update_uri(model))
         }
         SwitchToIdentitiesView -> {
-          let model = Game(..model, local_player: "", mode: Identities)
+          let model = Game(..model, mode: Identities)
           #(model, effect.none())
         }
         SwitchToEditingView -> {
-          let model = Game(..model, local_player: "", mode: Editing)
+          let model = Game(..model, mode: Editing)
           #(model, effect.none())
         }
         ShareGameView -> {
@@ -293,7 +301,7 @@ pub fn view(model: Model) -> Element(Message) {
         ]),
       ])
     }
-    Game(players:, local_player: _, mode: Editing) -> {
+    Game(players:, local_player_id: _, mode: Editing) -> {
       let player_input_elements =
         iv.index_map(players, fn(player, index) {
           let index_str = int.to_string(index)
@@ -411,11 +419,23 @@ pub fn view(model: Model) -> Element(Message) {
         ]),
       ])
     }
-    Game(players:, local_player: "", mode: Identities) -> {
-      let player_identities =
+    Game(players:, local_player_id: option.None, mode: Identities) -> {
+      let player_elements =
         iv.map(players, fn(player) {
-          keyed.div([], [#(player.id, html.div([], []))])
+          #(
+            player.id,
+            html.li([], [
+              button.outline(
+                [
+                  attribute.class("w-full"),
+                  event.on_click(ChooseLocalPlayer(player.id)),
+                ],
+                [html.text(player.name)],
+              ),
+            ]),
+          )
         })
+      let player_identities = keyed.ul([], iv.to_list(player_elements))
 
       card.card([], [
         card.header([attribute.class("flex")], [
@@ -440,19 +460,33 @@ pub fn view(model: Model) -> Element(Message) {
                 StartGame(player_name: name)
               }),
             ],
-            list.append(iv.to_list(player_identities), [
-              button.button([event.on_click(SwitchToEditingView)], [
-                html.text("Back to Edit"),
+            [
+              player_identities,
+              html.div([attribute.class("flex w-full gap-4")], [
+                button.button(
+                  [
+                    attribute.class("flex-grow"),
+                    event.on_click(ShareGameView),
+                  ],
+                  [html.text("Share Game")],
+                ),
+                button.button(
+                  [
+                    attribute.class("flex-grow"),
+                    event.on_click(SwitchToEditingView),
+                  ],
+                  [html.text("Back to Edit")],
+                ),
               ]),
-            ]),
+            ],
           ),
         ]),
       ])
     }
-    Game(players: _, local_player: _, mode: Identities) -> {
+    Game(players: _, local_player_id: _, mode: Identities) -> {
       html.div([], [html.text("")])
     }
-    Game(players: _, local_player: _, mode: ShareGame) -> {
+    Game(players: _, local_player_id: _, mode: ShareGame) -> {
       card.card([], [
         card.header([attribute.class("flex")], [
           html.div([attribute.class("w-full space-y-2")], [
@@ -467,10 +501,21 @@ pub fn view(model: Model) -> Element(Message) {
         ]),
         card.content([], [
           html.div([], [render_qrcode(get_current_uri_as_string())]),
-          html.div([attribute.class("space-y-8")], [
-            button.button([event.on_click(SwitchToEditingView)], [
-              html.text("Back to Edit"),
-            ]),
+          html.div([attribute.class("flex w-full gap-4")], [
+            button.button(
+              [
+                attribute.class("flex-grow"),
+                event.on_click(SwitchToEditingView),
+              ],
+              [html.text("Back to Edit")],
+            ),
+            button.button(
+              [
+                attribute.class("flex-grow"),
+                event.on_click(SwitchToIdentitiesView),
+              ],
+              [html.text("View Identities")],
+            ),
           ]),
         ]),
       ])
