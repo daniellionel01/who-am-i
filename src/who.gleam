@@ -10,6 +10,7 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/uri
+import glqr
 import iv
 import lustre
 import lustre/attribute.{attribute}
@@ -465,6 +466,7 @@ pub fn view(model: Model) -> Element(Message) {
           ]),
         ]),
         card.content([], [
+          html.div([], [render_qrcode(get_current_uri_as_string())]),
           html.div([attribute.class("space-y-8")], [
             button.button([event.on_click(SwitchToEditingView)], [
               html.text("Back to Edit"),
@@ -478,6 +480,16 @@ pub fn view(model: Model) -> Element(Message) {
   html.div([attribute.class("p-20 w-full flex justify-center")], [
     html.div([attribute.class("w-full max-w-3xl")], [main]),
   ])
+}
+
+pub fn render_qrcode(uri: String) -> Element(model) {
+  let assert Ok(matrix) =
+    glqr.new(uri)
+    |> glqr.generate()
+
+  let svg = glqr.to_svg(matrix)
+
+  element.unsafe_raw_html("", "div", [attribute.class("max-w-md")], svg)
 }
 
 pub fn icon_x() {
