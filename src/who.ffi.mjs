@@ -77,3 +77,14 @@ export function random_id(length) {
 
   return id;
 }
+
+/**
+ * @param {string} url
+ */
+export function replace_state(url) {
+  window.history.replaceState(null, "", url);
+}
+
+export function get_current_uri_as_string() {
+  return window.location.toString();
+}

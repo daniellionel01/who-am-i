@@ -7,6 +7,9 @@ import gleam/dynamic
 import gleam/dynamic/decode
 import gleam/int
 import gleam/list
+import gleam/option
+import gleam/result
+import gleam/uri
 import iv
 import lustre
 import lustre/attribute.{attribute}
@@ -40,7 +43,19 @@ pub type Model {
 }
 
 pub fn init(_: Nil) -> #(Model, Effect(Message)) {
-  let model = NewGame
+  let model = case uri.parse(get_current_uri_as_string()) {
+    Error(_) -> NewGame
+    Ok(uri) -> {
+      case game_state_from_uri(uri) {
+        Error(_) -> NewGame
+        Ok(players) -> {
+          let players = iv.from_list(players)
+          Game(players:, local_player: "", mode: Editing)
+        }
+      }
+    }
+  }
+
   #(model, effect.none())
 }
 
@@ -81,6 +96,48 @@ pub fn button_action_to_string(action: ButtonAction) {
 
 pub fn create_player_id() {
   random_id(7)
+}
+
+pub fn game_state_to_uri(players: List(Player)) -> uri.Uri {
+  let query =
+    uri.query_to_string(list.append(
+      list.map(players, fn(player) { #("names[]", player.name) }),
+      list.map(players, fn(player) { #("identities[]", player.identity) }),
+    ))
+  uri.Uri(..uri.empty, path: "/", query: option.Some(query))
+}
+
+pub fn update_uri(model: Model) -> Effect(a) {
+  effect.from(fn(_dispatch) {
+    case model {
+      NewGame -> Nil
+      Game(players:, local_player: _, mode: _) -> {
+        let players = iv.to_list(players)
+        let uri = game_state_to_uri(players)
+        replace_state("/?" <> option.unwrap(uri.query, ""))
+      }
+    }
+  })
+}
+
+pub fn game_state_from_uri(uri: uri.Uri) -> Result(List(Player), Nil) {
+  case uri.query {
+    option.None -> Error(Nil)
+    option.Some(query) -> {
+      use query <- result.try(uri.parse_query(query))
+
+      let names = list.key_filter(query, "names[]")
+      let identities = list.key_filter(query, "identities[]")
+
+      let players =
+        list.zip(names, identities)
+        |> list.map(fn(item) {
+          let #(name, identity) = item
+          Player(id: create_player_id(), name:, identity:)
+        })
+      Ok(players)
+    }
+  }
 }
 
 pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
@@ -178,7 +235,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
               }
             })
           let model = Game(..model, players:)
-          #(model, effect.none())
+          #(model, update_uri(model))
         }
         UpdatePlayerIdentity(id:, identity:) -> {
           let players =
@@ -189,7 +246,7 @@ pub fn update(model: Model, message: Message) -> #(Model, Effect(Message)) {
               }
             })
           let model = Game(..model, players:)
-          #(model, effect.none())
+          #(model, update_uri(model))
         }
 
         StartGame(_) -> panic as "reached impossible state"
@@ -461,3 +518,9 @@ pub fn from_base64(str: String) -> String
 
 @external(javascript, "./who.ffi.mjs", "random_id")
 pub fn random_id(length: Int) -> String
+
+@external(javascript, "./who.ffi.mjs", "replace_state")
+pub fn replace_state(url: String) -> Nil
+
+@external(javascript, "./who.ffi.mjs", "get_current_uri_as_string")
+pub fn get_current_uri_as_string() -> String
