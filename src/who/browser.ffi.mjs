@@ -44,14 +44,6 @@ export function from_base_64(base64) {
   return new TextDecoder().decode(bytes);
 }
 
-export function encode_uri_component(str) {
-  return encodeURIComponent(str);
-}
-
-export function decode_uri_component(str) {
-  return decodeURIComponent(str);
-}
-
 /**
  * @param {string} url
  * @returns {void}

@@ -4,12 +4,6 @@ pub fn confirm(message: String) -> Bool
 @external(javascript, "./browser.ffi.mjs", "alert")
 pub fn alert(message: String) -> Nil
 
-@external(javascript, "./browser.ffi.mjs", "encode_uri_component")
-pub fn encode_uri_component(str: String) -> String
-
-@external(javascript, "./browser.ffi.mjs", "decode_uri_component")
-pub fn decode_uri_component(str: String) -> String
-
 @external(javascript, "./browser.ffi.mjs", "to_base_64")
 pub fn to_base64(str: String) -> String
 
