@@ -47,6 +47,10 @@ pub type Model {
 }
 
 pub fn init(_: Nil) -> #(Model, Effect(Message)) {
+  // When we initially load the site, we either start a new game
+  // or let the user pick their identity, based on if we successfully
+  // decode player names & identities from the search query.
+  //
   let model = case uri.parse(browser.location_to_string()) {
     Error(_) -> NewGame
     Ok(uri) -> {
@@ -57,6 +61,9 @@ pub fn init(_: Nil) -> #(Model, Effect(Message)) {
             [] -> NewGame
             _ -> {
               let players = iv.from_list(players)
+
+              // If not all players have a name & identity yet, we render the edit form.
+              //
               let all_names_and_identities =
                 iv.all(players, fn(player) {
                   !string.is_empty(player.name)
