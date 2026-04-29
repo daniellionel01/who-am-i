@@ -507,7 +507,7 @@ pub fn view(model: Model) -> Element(Message) {
                   {
                     case local_player_id == player.id {
                       True ->
-                        html.p([attribute.class("blur-xs")], [
+                        html.p([attribute.class("blur-sm")], [
                           html.text(player.identity),
                         ])
                       False -> html.p([], [html.text(player.identity)])
