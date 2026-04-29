@@ -55,7 +55,7 @@ pub fn init(_: Nil) -> #(Model, Effect(Message)) {
         Error(_) -> NewGame
         Ok(players) -> {
           let players = iv.from_list(players)
-          Game(players:, local_player_id: option.None, mode: Editing)
+          Game(players:, local_player_id: option.None, mode: Identities)
         }
       }
     }
