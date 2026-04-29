@@ -9,6 +9,7 @@ import gleam/int
 import gleam/list
 import gleam/option
 import gleam/result
+import gleam/string
 import gleam/uri
 import glqr
 import iv
@@ -54,8 +55,23 @@ pub fn init(_: Nil) -> #(Model, Effect(Message)) {
       case game_state_from_uri(uri) {
         Error(_) -> NewGame
         Ok(players) -> {
-          let players = iv.from_list(players)
-          Game(players:, local_player_id: option.None, mode: Identities)
+          case players {
+            [] -> NewGame
+            _ -> {
+              let players = iv.from_list(players)
+              let all_names_and_identities =
+                iv.all(players, fn(player) {
+                  !string.is_empty(player.name)
+                  && !string.is_empty(player.identity)
+                })
+              let mode = case all_names_and_identities {
+                False -> Editing
+                True -> Identities
+              }
+
+              Game(players:, local_player_id: option.None, mode:)
+            }
+          }
         }
       }
     }
@@ -393,26 +409,29 @@ pub fn view(model: Model) -> Element(Message) {
                 button.outline([event.on_click(AddPlayer)], [
                   html.text("Add Player"),
                 ]),
-                html.div([attribute.class("flex w-full gap-4")], [
-                  button.submit(
-                    [
-                      attribute.class("flex-grow"),
-                      attribute.name("action"),
-                      attribute.value(button_action_to_string(ShareGameAction)),
-                    ],
-                    [html.text("Share Game")],
-                  ),
-                  button.submit(
-                    [
-                      attribute.class("flex-grow"),
-                      attribute.name("action"),
-                      attribute.value(button_action_to_string(
-                        SwitchToIdentitiesAction,
-                      )),
-                    ],
-                    [html.text("View Identities")],
-                  ),
-                ]),
+                html.div(
+                  [attribute.class("flex flex-col sm:flex-row w-full gap-4")],
+                  [
+                    button.submit(
+                      [
+                        attribute.class("flex-grow"),
+                        attribute.name("action"),
+                        attribute.value(button_action_to_string(ShareGameAction)),
+                      ],
+                      [html.text("Share Game")],
+                    ),
+                    button.submit(
+                      [
+                        attribute.class("flex-grow"),
+                        attribute.name("action"),
+                        attribute.value(button_action_to_string(
+                          SwitchToIdentitiesAction,
+                        )),
+                      ],
+                      [html.text("View Identities")],
+                    ),
+                  ],
+                ),
               ]),
             ],
           ),
@@ -467,22 +486,25 @@ pub fn view(model: Model) -> Element(Message) {
             ],
             [
               player_identities,
-              html.div([attribute.class("flex w-full gap-4")], [
-                button.button(
-                  [
-                    attribute.class("flex-grow"),
-                    event.on_click(ShareGameView),
-                  ],
-                  [html.text("Share Game")],
-                ),
-                button.button(
-                  [
-                    attribute.class("flex-grow"),
-                    event.on_click(SwitchToEditingView),
-                  ],
-                  [html.text("Back to Edit")],
-                ),
-              ]),
+              html.div(
+                [attribute.class("flex flex-col sm:flex-row w-full gap-4")],
+                [
+                  button.button(
+                    [
+                      attribute.class("flex-grow"),
+                      event.on_click(ShareGameView),
+                    ],
+                    [html.text("Share Game")],
+                  ),
+                  button.button(
+                    [
+                      attribute.class("flex-grow"),
+                      event.on_click(SwitchToEditingView),
+                    ],
+                    [html.text("Back to Edit")],
+                  ),
+                ],
+              ),
             ],
           ),
         ]),
@@ -544,22 +566,25 @@ pub fn view(model: Model) -> Element(Message) {
             ],
             [
               player_identities,
-              html.div([attribute.class("flex w-full gap-4")], [
-                button.button(
-                  [
-                    attribute.class("flex-grow"),
-                    event.on_click(ShareGameView),
-                  ],
-                  [html.text("Share Game")],
-                ),
-                button.button(
-                  [
-                    attribute.class("flex-grow"),
-                    event.on_click(SwitchToEditingView),
-                  ],
-                  [html.text("Back to Edit")],
-                ),
-              ]),
+              html.div(
+                [attribute.class("flex flex-col sm:flex-row w-full gap-4")],
+                [
+                  button.button(
+                    [
+                      attribute.class("flex-grow"),
+                      event.on_click(ShareGameView),
+                    ],
+                    [html.text("Share Game")],
+                  ),
+                  button.button(
+                    [
+                      attribute.class("flex-grow"),
+                      event.on_click(SwitchToEditingView),
+                    ],
+                    [html.text("Back to Edit")],
+                  ),
+                ],
+              ),
             ],
           ),
         ]),
@@ -601,7 +626,7 @@ pub fn view(model: Model) -> Element(Message) {
     }
   }
 
-  html.div([attribute.class("p-20 w-full flex justify-center")], [
+  html.div([attribute.class("p-4 sm:p-20 w-full flex justify-center")], [
     html.div([attribute.class("w-full max-w-3xl")], [main]),
   ])
 }
