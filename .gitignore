@@ -3,6 +3,8 @@
 /build
 erl_crash.dump
 
-*.env
-*.db*
-*.sqlite*
+.DS_Store
+
+#Added automatically by Lustre Dev Tools
+/.lustre
+/dist
