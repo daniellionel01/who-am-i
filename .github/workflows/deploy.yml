@@ -27,6 +27,9 @@ jobs:
         run: gleam deps download
       - name: Build app
         run: gleam run -m lustre/dev build --minify --outdir=dist
+      - name: Fix asset paths for GitHub Pages
+        run: |
+          sed -i -E 's#(href|src)="/([^"]+\.(css|js))"#\1="./\2"#g' dist/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
