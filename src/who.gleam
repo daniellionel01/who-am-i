@@ -451,8 +451,8 @@ pub fn editing_screen(players: iv.Array(player.Player)) {
               input.input([
                 attribute.class(
                   "
-                  text-transparent caret-muted-foreground [text-shadow:0_0_10px_var(--muted-foreground)]
-                  placeholder:[text-shadow:none] selection:text-transparent selection:[text-shadow:0_0_6px_var(--foreground)]
+                  text-transparent caret-muted-foreground [text-shadow:0_0_14px_var(--muted-foreground)]
+                  placeholder:[text-shadow:none] selection:text-transparent selection:[text-shadow:0_0_14px_var(--foreground)]
                 ",
                 ),
                 input.id("player_identities-" <> index_str),
