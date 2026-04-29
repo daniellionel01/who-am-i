@@ -19,6 +19,10 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 lustre_dev_tools = ">= 2.3.6 and < 3.0.0"
 
 [tools.lustre.html]
-scripts = [{ src = "https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/all.min.js" }]
+scripts = [
+  { src = "https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/all.min.js" },
+  { src= "https://plausible.io/js/pa-WywbxbY7fPTeUWMHlYnxt.js" },
+  { content = "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()" }
+]
 links = [{ rel="icon", href="https://fav.farm/%F0%9F%A5%B8" }]
 title = "Who am I?"
