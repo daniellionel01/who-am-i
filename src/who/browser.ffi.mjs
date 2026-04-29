@@ -17,8 +17,6 @@ export function alert(message) {
 }
 
 /**
- * We have to encode these bytes
- *
  * @param {string} str
  * @returns {string}
  */
@@ -55,37 +53,25 @@ export function decode_uri_component(str) {
 }
 
 /**
- * @param {number} length
- * @returns {string}
+ * @param {string} url
+ * @returns {void}
  */
-export function random_id(length) {
-  const alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
-  const bytes = new Uint8Array(length * 2);
-  let id = "";
-
-  while (id.length < length) {
-    crypto.getRandomValues(bytes);
-
-    for (const byte of bytes) {
-      if (id.length >= length) break;
-
-      if (byte < 252) {
-        id += alphabet[byte % alphabet.length];
-      }
-    }
-  }
-
-  return id;
-}
-
-/**
- * @param {string} search
- */
-export function update_url_search(search) {
-  const url = window.location.pathname + "?" + search;
+export function history_replace_state(url) {
   window.history.replaceState(null, "", url);
 }
 
-export function get_current_uri_as_string() {
+/**
+ *
+ * @returns {string}
+ */
+export function location_to_string() {
   return window.location.toString();
+}
+
+/**
+ *
+ * @returns {string}
+ */
+export function location_pathname() {
+  return window.location.pathname;
 }
