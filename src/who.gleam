@@ -392,7 +392,7 @@ pub fn application_card(
       ]),
     ]),
     card.content([], content),
-    card.footer([attribute.class("border-t-2 pt-4")], [
+    card.footer([attribute.class("border-t pt-4")], [
       html.p([attribute.class("text-sm")], [
         html.span([attribute.class("inline-flex items-center gap-1")], [
           html.text("Made with"),

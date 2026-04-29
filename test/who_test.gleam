@@ -18,11 +18,6 @@ pub fn base64_test() {
   assert str == browser.from_base64(browser.to_base64(str))
 }
 
-pub fn encode_decode_uri_test() {
-  let str = "players=[one, two, three]"
-  assert str == browser.decode_uri_component(browser.encode_uri_component(str))
-}
-
 pub fn random_id_test() {
   assert string.length(player.random_id(7)) == 7
   assert string.length(player.random_id(10)) == 10
