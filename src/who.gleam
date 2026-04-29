@@ -389,6 +389,28 @@ pub fn application_card(
       ]),
     ]),
     card.content([], content),
+    card.footer([attribute.class("border-t-2 pt-4")], [
+      html.p([attribute.class("text-sm")], [
+        html.span([attribute.class("inline-flex items-center gap-1")], [
+          html.text("Made with"),
+          html.a(
+            [attribute.href("https://gleam.run/"), attribute.class("underline")],
+            [html.text("Gleam")],
+          ),
+          html.text("and"),
+          html.a(
+            [
+              attribute.href("https://hexdocs.pm/lustre/index.html"),
+              attribute.class("underline"),
+            ],
+            [html.text("Lustre")],
+          ),
+          html.span([attribute.class("inline-block w-6 h-6")], [
+            component.lucy(),
+          ]),
+        ]),
+      ]),
+    ]),
   ])
 }
 
