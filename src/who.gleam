@@ -137,7 +137,9 @@ pub fn game_state_to_search(
 ) -> List(#(String, String)) {
   list.append(
     list.map(players, fn(player) { #("names[]", player.name) }),
-    list.map(players, fn(player) { #("identities[]", player.identity) }),
+    list.map(players, fn(player) {
+      #("identities[]", browser.to_base64(player.identity))
+    }),
   )
 }
 
@@ -180,6 +182,7 @@ pub fn game_state_from_uri(uri: uri.Uri) -> Result(List(player.Player), Nil) {
         list.zip(names, identities)
         |> list.map(fn(item) {
           let #(name, identity) = item
+          let identity = browser.from_base64(identity)
           player.Player(id: player.create_id(), name:, identity:)
         })
       Ok(players)
