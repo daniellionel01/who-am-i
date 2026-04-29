@@ -448,7 +448,13 @@ pub fn editing_screen(players: iv.Array(player.Player)) {
                 ],
                 [html.text("Identity:")],
               ),
-              input.password([
+              input.input([
+                attribute.class(
+                  "
+                  text-transparent caret-muted-foreground [text-shadow:0_0_10px_var(--muted-foreground)]
+                  placeholder:[text-shadow:none] selection:text-transparent selection:[text-shadow:0_0_6px_var(--foreground)]
+                ",
+                ),
                 input.id("player_identities-" <> index_str),
                 input.name("player_identities[]"),
                 attribute.required(True),
