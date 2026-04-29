@@ -3,19 +3,10 @@ import gleam/string
 import gleam/uri
 import gleeunit
 import who
-import who/browser
 import who/player
 
 pub fn main() -> Nil {
   gleeunit.main()
-}
-
-pub fn base64_test() {
-  let str = "Joe"
-  assert str == browser.from_base64(browser.to_base64(str))
-
-  let str = "hello 👋"
-  assert str == browser.from_base64(browser.to_base64(str))
 }
 
 pub fn random_id_test() {

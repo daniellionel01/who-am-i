@@ -4,12 +4,6 @@ pub fn confirm(message: String) -> Bool
 @external(javascript, "./browser.ffi.mjs", "alert")
 pub fn alert(message: String) -> Nil
 
-@external(javascript, "./browser.ffi.mjs", "to_base_64")
-pub fn to_base64(str: String) -> String
-
-@external(javascript, "./browser.ffi.mjs", "from_base_64")
-pub fn from_base64(str: String) -> String
-
 @external(javascript, "./browser.ffi.mjs", "history_replace_state")
 pub fn history_replace_state(url: String) -> Nil
 

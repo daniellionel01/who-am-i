@@ -4,6 +4,7 @@ import glaze/basecoat/form
 import glaze/basecoat/input
 import glaze/basecoat/label
 import glaze/basecoat/theme_switcher
+import gleam/bit_array
 import gleam/dynamic
 import gleam/dynamic/decode
 import gleam/int
@@ -138,7 +139,11 @@ pub fn game_state_to_search(
   list.append(
     list.map(players, fn(player) { #("names[]", player.name) }),
     list.map(players, fn(player) {
-      #("identities[]", browser.to_base64(player.identity))
+      let identity =
+        player.identity
+        |> bit_array.from_string
+        |> bit_array.base64_url_encode(False)
+      #("identities[]", identity)
     }),
   )
 }
@@ -178,13 +183,15 @@ pub fn game_state_from_uri(uri: uri.Uri) -> Result(List(player.Player), Nil) {
       let names = list.key_filter(query, "names[]")
       let identities = list.key_filter(query, "identities[]")
 
-      let players =
+      use players <- result.try(
         list.zip(names, identities)
-        |> list.map(fn(item) {
+        |> list.try_map(fn(item) {
           let #(name, identity) = item
-          let identity = browser.from_base64(identity)
-          player.Player(id: player.create_id(), name:, identity:)
-        })
+          use identity <- result.try(bit_array.base64_url_decode(identity))
+          use identity <- result.try(bit_array.to_string(identity))
+          Ok(player.Player(id: player.create_id(), name:, identity:))
+        }),
+      )
       Ok(players)
     }
   }
