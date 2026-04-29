@@ -3,6 +3,7 @@ import glaze/basecoat/card
 import glaze/basecoat/form
 import glaze/basecoat/input
 import glaze/basecoat/label
+import glaze/basecoat/theme_switcher
 import gleam/dynamic
 import gleam/dynamic/decode
 import gleam/int
@@ -13,7 +14,7 @@ import gleam/string
 import gleam/uri
 import iv
 import lustre
-import lustre/attribute
+import lustre/attribute.{attribute}
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import lustre/element/html
@@ -333,11 +334,13 @@ pub fn view(model: Model) -> Element(Message) {
 
   html.div([attribute.class("p-4 sm:p-20 w-full flex justify-center")], [
     html.div([attribute.class("w-full max-w-3xl")], [main]),
+
+    theme_switcher.init_script(),
   ])
 }
 
 pub fn reset_button() -> Element(Message) {
-  button.destructive([event.on_click(ResetGameClicked)], [
+  button.outline([event.on_click(ResetGameClicked)], [
     html.text("Reset"),
   ])
 }
@@ -358,7 +361,25 @@ pub fn application_card(
           html.text(description),
         ]),
       ]),
-      option.unwrap(action, element.fragment([])),
+      html.div([attribute.class("flex gap-2")], [
+        option.unwrap(action, element.fragment([])),
+        button.icon_outline(
+          [
+            attribute(
+              "onclick",
+              "document.dispatchEvent(new CustomEvent('basecoat:theme'))",
+            ),
+          ],
+          [
+            html.span([attribute.class("hidden dark:block")], [
+              component.sun_icon(),
+            ]),
+            html.span([attribute.class("block dark:hidden")], [
+              component.moon_icon(),
+            ]),
+          ],
+        ),
+      ]),
     ]),
     card.content([], content),
   ])
@@ -466,7 +487,7 @@ pub fn editing_screen(players: iv.Array(player.Player)) {
             ]),
           ]),
           button.icon_outline([event.on_click(RemovePlayer(index))], [
-            component.icon_x(),
+            component.close_icon(),
           ]),
         ])
       #(player.id_to_string(player.id), el)
