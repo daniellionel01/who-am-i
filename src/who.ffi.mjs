@@ -82,7 +82,7 @@ export function random_id(length) {
  * @param {string} search
  */
 export function update_url_search(search) {
-  const url = window.location.pathname + search;
+  const url = window.location.pathname + "?" + search;
   window.history.replaceState(null, "", url);
 }
 
