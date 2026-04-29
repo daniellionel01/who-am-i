@@ -79,9 +79,10 @@ export function random_id(length) {
 }
 
 /**
- * @param {string} url
+ * @param {string} search
  */
-export function replace_state(url) {
+export function update_url_search(search) {
+  const url = window.location.pathname + search;
   window.history.replaceState(null, "", url);
 }
 

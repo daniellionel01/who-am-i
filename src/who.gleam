@@ -116,12 +116,12 @@ pub fn update_uri(model: Model) -> Effect(a) {
   effect.from(fn(_dispatch) {
     case model {
       NewGame -> {
-        replace_state("/")
+        update_url_search("")
       }
       Game(players:, local_player_id: _, mode: _) -> {
         let players = iv.to_list(players)
         let uri = game_state_to_uri(players)
-        replace_state("/?" <> option.unwrap(uri.query, ""))
+        update_url_search(option.unwrap(uri.query, ""))
       }
     }
   })
@@ -658,8 +658,8 @@ pub fn from_base64(str: String) -> String
 @external(javascript, "./who.ffi.mjs", "random_id")
 pub fn random_id(length: Int) -> String
 
-@external(javascript, "./who.ffi.mjs", "replace_state")
-pub fn replace_state(url: String) -> Nil
+@external(javascript, "./who.ffi.mjs", "update_url_search")
+pub fn update_url_search(search: String) -> Nil
 
 @external(javascript, "./who.ffi.mjs", "get_current_uri_as_string")
 pub fn get_current_uri_as_string() -> String
